@@ -1,0 +1,26 @@
+from torch.utils.data import Dataset
+import os
+from PIL import Image
+from utils import crop, pre_process
+from matplotlib import pyplot as plt
+import numpy as np
+
+class MyDataset(Dataset):
+    def __init__(self, data_dir, transform=None, binarize_at=0.0, resize_to=(0,0), crop_shape=(0,0)):
+        self.data = [os.path.join(data_dir, p) for p in os.listdir(data_dir)]
+        self.transform = transform
+        self.binarize_at = binarize_at
+        self.resize_to = resize_to
+        self.crop_shape = crop_shape
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        triplet_path = self.data[idx]
+        #Extracts all three frames of the triplet
+        frame1 = self.transform(Image.open(triplet_path[idx] + "/frame1.png"))
+        frame2 = self.transform(Image.open(triplet_path[idx] + "/frame2.png"))
+        frame3 = self.transform(Image.open(triplet_path[idx] + "/frame3.png"))
+
+        return frame1, frame2, frame3
