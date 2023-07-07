@@ -1,13 +1,14 @@
-from utils.utils import visualize_batch
 from torch.utils.data import DataLoader
 import tqdm
 from torch import nn
 import torch
 from loss import get_gen_loss
+from torchvision.utils import save_image
+from utils.utils import create_gif
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, l1=nn.L1Loss(), l2=None, l3=None, lamb1=100, lamb2=100, lamb3=100, 
-         batch_size=12, device='cuda:1', experiment_dir='exp/'):
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, l1=nn.L1Loss(), l2=None, l3=None, lamb1=100, lamb2=100, lamb3=100, 
+         batch_size=12, device='cuda', experiment_dir='exp/'):
     '''
     Tests a single epoch
     '''
@@ -36,5 +37,11 @@ def test(dataset, gen, disc, adv_l, adv_lambda, l1=nn.L1Loss(), l2=None, l3=None
         
         gen_epoch_loss += gen_loss.item()
         disc_epoch_loss += disc_loss.item()
+
+    if epoch % display_step == 0:
+        # Saves torch image with the batch of predicted and real images
+        save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
+        save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
+        create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
 
     return gen_epoch_loss/len(dataloader), disc_epoch_loss/len(dataloader)

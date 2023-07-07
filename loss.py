@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import utils.calculator as cal
 
 
-def get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=None, l2=None, l3=None, lamb1=None, lamb2=None, lamb3=None, device='cuda:1'):
+def get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=None, l2=None, l3=None, lamb1=None, lamb2=None, lamb3=None, device='cuda'):
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
     gen_l1 = l1(real, preds)
