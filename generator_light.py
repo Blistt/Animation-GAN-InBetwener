@@ -17,41 +17,37 @@ class GeneratorLight(nn.Module):
     A generator without noise z
     '''
 
-    def __init__(self, opt):
+    def __init__(self, input_channels, hidden_channels):
         super(GeneratorLight, self).__init__()
-        self.nfg = 64  # the size of feature map
-        self.c = opt.channels  # output channel
-        self.model_path = opt.default_model_path
-        self.path = opt.path  # output folders
         filter_size = 4
         stride_size = 2
-        
+                
         self.down_sample_blocks = nn.Sequential(
-            nn.Conv2d(self.c * 2, self.nfg * 2, kernel_size=3, stride=1, padding=1, bias=False),  # size
-            nn.BatchNorm2d(self.nfg * 2),
+            nn.Conv2d(input_channels * 2, hidden_channels * 2, kernel_size=3, stride=1, padding=1, bias=False),  # size
+            nn.BatchNorm2d(hidden_channels * 2),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.Conv2d(self.nfg * 2, self.nfg * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
-            nn.BatchNorm2d(self.nfg * 2),
+            nn.Conv2d(hidden_channels * 2, hidden_channels * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
+            nn.BatchNorm2d(hidden_channels * 2),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.Conv2d(self.nfg * 2, self.nfg * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
-            nn.BatchNorm2d(self.nfg * 4),
+            nn.Conv2d(hidden_channels * 2, hidden_channels * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
+            nn.BatchNorm2d(hidden_channels * 4),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.Conv2d(self.nfg * 4, self.nfg * 8, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
-            nn.BatchNorm2d(self.nfg * 8),
+            nn.Conv2d(hidden_channels * 4, hidden_channels * 8, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
+            nn.BatchNorm2d(hidden_channels * 8),
             nn.LeakyReLU(0.02, inplace=True)
             )
         
         self.up_sample_block = nn.Sequential(
-            nn.ConvTranspose2d(self.nfg * 8, self.nfg * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
-            nn.BatchNorm2d(self.nfg * 4),
+            nn.ConvTranspose2d(hidden_channels * 8, hidden_channels * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
+            nn.BatchNorm2d(hidden_channels * 4),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.ConvTranspose2d(self.nfg * 4, self.nfg * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
-            nn.BatchNorm2d(self.nfg * 2),
+            nn.ConvTranspose2d(hidden_channels * 4, hidden_channels * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
+            nn.BatchNorm2d(hidden_channels * 2),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.ConvTranspose2d(self.nfg * 2, self.nfg, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
-            nn.BatchNorm2d(self.nfg),
+            nn.ConvTranspose2d(hidden_channels * 2, hidden_channels, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
+            nn.BatchNorm2d(hidden_channels),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.ConvTranspose2d(self.nfg, self.c, kernel_size=3, stride=1, padding=1, bias=False),  # size
+            nn.ConvTranspose2d(hidden_channels, input_channels, kernel_size=3, stride=1, padding=1, bias=False),  # size
             nn.Tanh()
             )
     

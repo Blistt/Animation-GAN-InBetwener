@@ -1,7 +1,6 @@
 from torch.utils.data import Dataset
 import os
 from PIL import Image
-from utils import crop, pre_process
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -18,9 +17,10 @@ class MyDataset(Dataset):
 
     def __getitem__(self, idx):
         triplet_path = self.data[idx]
+        extension = os.listdir(self.data[idx])[0].split(".")[-1]
         #Extracts all three frames of the triplet
-        frame1 = self.transform(Image.open(triplet_path[idx] + "/frame1.png"))
-        frame2 = self.transform(Image.open(triplet_path[idx] + "/frame2.png"))
-        frame3 = self.transform(Image.open(triplet_path[idx] + "/frame3.png"))
+        frame1 = self.transform(Image.open(triplet_path + "/frame1." + extension))
+        frame2 = self.transform(Image.open(triplet_path + "/frame2." + extension))
+        frame3 = self.transform(Image.open(triplet_path + "/frame3." + extension))
 
         return frame1, frame2, frame3
