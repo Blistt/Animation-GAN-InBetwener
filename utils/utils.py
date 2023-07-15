@@ -79,3 +79,41 @@ def visualize_batch(input1, labels, input2, pred, epoch, experiment_dir='exp/', 
             plt.legend()
             plt.savefig(experiment_dir + 'loss' + str(epoch) + '.png')
         
+
+def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='testing', size=(20, 20)):
+    # Plots all metrics in metrics dictionary in a plt figure
+    # Create a new figure with multiple subplots arranged in a square grid
+    num_metrics = len(metrics)
+    num_rows = math.ceil(math.sqrt(num_metrics))
+    num_cols = math.ceil(num_metrics / num_rows)
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=size)
+    
+    # Flatten the axes array to make it easier to iterate over
+    axes = axes.flatten()
+    
+    # Plot the values of each metric in a separate subplot
+    for i, (metric, values) in enumerate(metrics.items()):
+        axes[i].plot(values, label=metric)
+        axes[i].set_title(metric)
+        axes[i].set_xlabel('epoch')
+    
+    # Save the plot to a file
+    plt.savefig(f'{experiment_dir+train_test}/metrics_{epoch}.png')
+    
+    # Show the plot
+    plt.show()
+
+
+def write_log(log, experiment_dir, train_test):
+    # Open a new file for writing
+    with open(experiment_dir+train_test+'.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        
+        # Write the header row
+        header = ['index'] + list(log.keys())
+        writer.writerow(header)
+        
+        # Write the data rows
+        for i in range(len(log['chamfer'])):
+            row = [i] + [log[key][i] for key in log]
+            writer.writerow(row)
