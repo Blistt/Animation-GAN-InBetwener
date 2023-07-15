@@ -40,8 +40,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, l1=nn.L1
 
     if epoch % display_step == 0:
         # Saves torch image with the batch of predicted and real images
-        save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
-        save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
+        save_image(real[:4], experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
+        save_image(preds[:4], experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
         create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
 
     return gen_epoch_loss/len(dataloader), disc_epoch_loss/len(dataloader)

@@ -4,10 +4,10 @@ from tqdm.auto import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from generator_light import GeneratorLight
-from discriminator import Discriminator
+from discriminator_full import Discriminator
 from utils.utils import weights_init, visualize_batch, create_gif
 from dataset_class import MyDataset
-from loss import get_gen_loss, gdl_loss, MS_SSIM
+from loss import get_gen_loss, GDL, MS_SSIM
 from test import test
 import os
 from torchvision.utils import save_image
@@ -53,10 +53,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
             disc_opt.zero_grad()
             # Discriminator loss for predicted images
             disc_pred_hat = disc(preds.detach())
-            disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
+            disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat)-0.05)
             # Discriminator loss for real images
             disc_real_hat = disc(real)
-            disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
+            disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat)+0.1)
             # Total discriminator loss
             disc_loss = (disc_fake_loss + disc_real_loss) / 2
             disc_loss.backward(retain_graph=True)
@@ -116,8 +116,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
             visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
             # Saves torch image with the batch of predicted and real images
-            save_image(real, train_dir + str(epoch) + '_real.png', nrow=4, normalize=True)
-            save_image(preds, train_dir + str(epoch) + '_preds.png', nrow=4, normalize=True)
+            save_image(real[:4], train_dir + str(epoch) + '_real.png', nrow=4, normalize=True)
+            save_image(preds[:4], train_dir + str(epoch) + '_preds.png', nrow=4, normalize=True)
             create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
 
             # Saves checkpoing with model's current state
@@ -143,9 +143,9 @@ if __name__ == '__main__':
     device = 'cuda'
 
     '''Loss function parameters'''
-    adv_l = nn.BCEWithLogitsLoss()      # Adversarial loss
-    recon_l = nn.L1Loss()               # Reconstruction loss 1
-    gdl_l = gdl_loss                    # Reconstruction loss 2
+    adv_l = nn.BCEWithLogitsLoss().cuda()      # Adversarial loss
+    recon_l = nn.MSELoss().cuda()            # Reconstruction loss 1
+    gdl_l = GDL(device)                   # Reconstruction loss 2
     ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
     adv_lambda = 0.05                   # Adversarial loss weight
     recon_lambda = 1.0                  # Reconstruction loss 1 weight        
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     n_epochs = 2000                      # Number of epochs
     input_dim = 1                       # Input channels
     hidden_channels = 64                # Hidden channels of the generator and discriminator
-    display_step = 40                    # How often to display/visualize the images
+    display_step = 40                   # How often to display/visualize the images
     batch_size = 23                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 10
+    display_step = 40
     experiment_dir = 'exp0_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 

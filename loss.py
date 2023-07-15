@@ -16,8 +16,8 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=None, l2=None, l3=None
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
     gen_l1 = l1(real, preds)
-    gen_l2 = l2(real, preds, device=device)
-    gen_l3 = l3(real, preds, device=device)
+    gen_l2 = l2(real, preds)
+    gen_l3 = l3(real, preds)
     gen_loss = (gen_adv_loss * adv_lambda) + (gen_l1 * lamb1) + (gen_l2 * lamb2) + (gen_l3 * lamb3)
     return gen_loss
 
@@ -64,13 +64,13 @@ class MS_SSIM(nn.Module):
         super(MS_SSIM, self).__init__()
         self.device = device
 
-    def forward(self, gen_frames, gt_frames, device='cuda:1'):
-        return 1 - self._cal_ms_ssim(gen_frames, gt_frames, device)
+    def forward(self, gen_frames, gt_frames):
+        return 1 - self._cal_ms_ssim(gen_frames, gt_frames)
         
-    def _cal_ms_ssim(self, gen_tensors, gt_tensors, device='cuda:1'):
+    def _cal_ms_ssim(self, gen_tensors, gt_tensors):
         weights = torch.Tensor([0.0448, 0.2856, 0.3001, 0.2363, 0.1333])
         if torch.cuda.is_available():
-            weights = weights.to(device)
+            weights = weights.to(self.device)
         
         gen = gen_tensors
         gt = gt_tensors
