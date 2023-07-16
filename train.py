@@ -4,7 +4,9 @@ from tqdm.auto import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from generator_crop import UNetCrop
+from generator_light import GeneratorLight
 from discriminator_crop import DiscriminatorCrop
+from discriminator_full import DiscriminatorFull
 from utils.utils import weights_init, visualize_batch, create_gif
 from dataset_class import MyDataset
 from loss import get_gen_loss
@@ -14,7 +16,7 @@ from torchvision.utils import save_image
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=100, n_epochs=10, 
-          batch_size=12, device='cuda', display_step=20, test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
+          batch_size=12, device='cuda:0', display_step=20, test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
     
     # stores generator losses
     tr_gen_losses = []  
@@ -39,7 +41,6 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
-            # print('TRAIN - input1', input1.shape, 'input2', input2.shape, 'pred', preds.shape, 'labels', real.shape)
             gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
             gen_loss.backward()
             gen_opt.step()
@@ -48,10 +49,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_opt.zero_grad()
             # Discriminator loss for predicted images
             disc_pred_hat = disc(preds.detach())
-            disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat)-0.05)
+            disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
             # Discriminator loss for real images
             disc_real_hat = disc(real)
-            disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat)+0.1)
+            disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
             # Total discriminator loss
             disc_loss = (disc_fake_loss + disc_real_loss) / 2
             disc_loss.backward(retain_graph=True)
@@ -119,8 +120,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint' + str(epoch) + '.pth')
 
         
-        print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-        f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
+        # print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
+        # f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
 
                     
         
@@ -153,16 +154,16 @@ if __name__ == '__main__':
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
     batch_size = 8                     # Batch size
-    lr = 0.0002                         # Learning rate
+    lr = 0.00000002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
 
     '''Model parameters'''
-    gen = UNetCrop(input_dim, label_dim).to(device)
+    gen = GeneratorLight(label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
-    disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
+    disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
 
 

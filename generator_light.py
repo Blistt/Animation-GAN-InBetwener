@@ -17,7 +17,7 @@ class GeneratorLight(nn.Module):
     A generator without noise z
     '''
 
-    def __init__(self, input_channels, hidden_channels):
+    def __init__(self, input_channels, hidden_channels=64):
         super(GeneratorLight, self).__init__()
         filter_size = 4
         stride_size = 2
@@ -47,7 +47,7 @@ class GeneratorLight(nn.Module):
             nn.ConvTranspose2d(hidden_channels * 2, hidden_channels, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
             nn.BatchNorm2d(hidden_channels),
             nn.LeakyReLU(0.02, inplace=True),
-            nn.ConvTranspose2d(hidden_channels, input_channels, kernel_size=3, stride=1, padding=1, bias=False),  # size
+            nn.ConvTranspose2d(hidden_channels, input_channels//2, kernel_size=3, stride=1, padding=1, bias=False),  # size
             nn.Tanh()
             )
     

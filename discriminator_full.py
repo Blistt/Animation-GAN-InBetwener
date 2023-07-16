@@ -9,10 +9,10 @@ import torch.nn as nn
 import os
 
 
-class Discriminator(nn.Module):
+class DiscriminatorFull(nn.Module):
 
     def __init__(self, input_channels, hidden_channels):
-        super(Discriminator, self).__init__()
+        super(DiscriminatorFull, self).__init__()
                 
         self.conv_blocks = nn.Sequential(
             nn.Conv2d(input_channels, hidden_channels, kernel_size=4, stride=2, padding=1, bias=False),
