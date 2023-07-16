@@ -5,8 +5,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from torchvision import transforms
 
-
-
 class MyDataset(Dataset):
     def __init__(self, data_dir, transform=None, binarize_at=0.0, resize_to=(0,0), crop_shape=(0,0)):
         self.data = [os.path.join(data_dir, p) for p in os.listdir(data_dir)]

@@ -3,19 +3,18 @@ from torch import nn
 from tqdm.auto import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from generator_light import GeneratorLight
-from discriminator_full import Discriminator
+from generator_crop import UNetCrop
+from discriminator_crop import DiscriminatorCrop
 from utils.utils import weights_init, visualize_batch, create_gif
 from dataset_class import MyDataset
-from loss import get_gen_loss, GDL, MS_SSIM
+from loss import get_gen_loss
 from test import test
 import os
 from torchvision.utils import save_image
 
 
-def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1Loss(), l2=None, l3=None, 
-          lamb1=100, lamb2=100, lamb3=100, n_epochs=10, batch_size=12, device='cuda', display_step=20,
-          test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
+def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=100, n_epochs=10, 
+          batch_size=12, device='cuda', display_step=20, test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
     
     # stores generator losses
     tr_gen_losses = []  
@@ -32,20 +31,16 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
     for epoch in range(n_epochs):
         print('Epoch: ' + str(epoch))
         gen.train(), disc.train()       # Set the models to training mode
-
-        # Stores losses for display purposes
-        gen_epoch_loss = 0
+        gen_epoch_loss = 0              # Stores losses for display purposes
         disc_epoch_loss = 0
         for input1, real, input2 in tqdm(dataloader):
-            input1 = input1.to(device)
-            real = real.to(device)
-            input2 = input2.to(device)
+            input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
-            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=l1, l2=l2, l3=l3, device=device,
-                                    lamb1=lamb1, lamb2=lamb2, lamb3=lamb3)
+            # print('TRAIN - input1', input1.shape, 'input2', input2.shape, 'pred', preds.shape, 'labels', real.shape)
+            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
             gen_loss.backward()
             gen_opt.step()
 
@@ -75,11 +70,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
             os.makedirs(experiment_dir+'test/', exist_ok=True)
             torch.cuda.empty_cache()    # Free up unused memory before starting testing process
             gen.eval(), disc.eval()     # Set the model to evaluation mode
-            args = locals()
             # Evaluate the model on the test dataset
             with torch.no_grad():
-                test_gen_loss, test_disc_loss = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, l1=l1, l2=l2, l3=l3,
-                                                     lamb1=lamb1, lamb2=lamb2, lamb3=lamb3, batch_size=batch_size, device=device,
+                test_gen_loss, test_disc_loss = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,
+                                                     lambr1=lambr1, batch_size=batch_size, device=device,
                                                      experiment_dir=experiment_dir+'test/')
             test_gen_losses.append(test_gen_loss)
             test_disc_losses.append(test_disc_loss)
@@ -105,8 +99,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
                 gen.eval(), disc.eval()     # Set the model to evaluation mode              
                 # Evaluate the model on the MY dataset
                 with torch.no_grad():
-                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, l1=l1, l2=l2, l3=l3, lamb1=lamb1, lamb2=lamb2, 
-                                       lamb3=lamb3, batch_size=batch_size, device=device, experiment_dir=experiment_dir+'cool_test/')
+                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,  lambr1=lambr1,
+                                       batch_size=batch_size, device=device, experiment_dir=experiment_dir+'cool_test/')
 
 
 
@@ -116,8 +110,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
             visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
             # Saves torch image with the batch of predicted and real images
-            save_image(real[:4], train_dir + str(epoch) + '_real.png', nrow=4, normalize=True)
-            save_image(preds[:4], train_dir + str(epoch) + '_preds.png', nrow=4, normalize=True)
+            save_image(real, train_dir + str(epoch) + '_real.png', nrows=2, normalize=True)
+            save_image(preds, train_dir + str(epoch) + '_preds.png', nrows=2, normalize=True)
             create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
 
             # Saves checkpoing with model's current state
@@ -127,6 +121,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
         
         print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
         f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
+
                     
         
         
@@ -140,57 +135,63 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=nn.L1
             
 if __name__ == '__main__':
     
-    device = 'cuda'
+    device = 'cuda:0'
 
     '''Loss function parameters'''
-    adv_l = nn.BCEWithLogitsLoss().cuda()      # Adversarial loss
-    recon_l = nn.BCEWithLogitsLoss().cuda()            # Reconstruction loss 1
+    adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
+    recon_l = nn.BCELoss().to(device)           # Reconstruction loss 1
     # gdl_l = GDL(device)                   # Reconstruction loss 2
     # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
-    adv_lambda = 0.05                   # Adversarial loss weight
+    adv_lambda = 1.0                 # Adversarial loss weight
     recon_lambda = 1.0                  # Reconstruction loss 1 weight        
-    gdl_lambda = 1.0                    # Reconstruction loss 2 weight
-    ms_ssim_lambda = 6.0                # Reconstruction loss 3 weight    
+
 
     '''Training loop parameters'''
-    n_epochs = 300                      # Number of epochs
-    input_dim = 1                       # Input channels
+    n_epochs = 100                      # Number of epochs
+    input_dim = 2                       # Input channels (1 for each grayscale input frame)
+    label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
-    batch_size = 16                     # Batch size
+    batch_size = 8                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
-    img_size = 512                      # Frames' image size
+    img_size = (512, 512)                      # Frames' image size
+    target_size = (373, 373)                   # Cropped frames' image size
 
     '''Model parameters'''
-    gen = GeneratorLight(input_dim, hidden_channels).to(device)
+    gen = UNetCrop(input_dim, label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
-    disc = Discriminator(input_dim, hidden_channels).to(device)
+    disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
 
 
     '''Dataset parameters'''
-    transform = transforms.Compose([
-        transforms.Resize((img_size, img_size)),
-        transforms.ToTensor(),])
+    transform=transforms.Compose([transforms.ToTensor(),
+                                transforms.Grayscale(num_output_channels=1),
+                                transforms.Resize(img_size, antialias=True),])
+    binary_threshold = 0.75
+
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
-    train_dataset = MyDataset(train_data_dir, transform=transform)
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                               crop_shape=target_size)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
-    test_dataset = MyDataset(test_data_dir, transform=transform)
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                             crop_shape=target_size)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
-    my_dataset = MyDataset(my_data_dir, transform=transform)
+    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                           crop_shape=target_size)
 
     '''
     Visualization parameters
     '''
     display_step = 10
-    experiment_dir = 'exp0/'
+    experiment_dir = 'exp1/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -205,6 +206,6 @@ if __name__ == '__main__':
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
-    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, l1=recon_l, l2=gdl_l, l3=ms_ssim_l, lamb1=recon_lambda,
-          lamb2=gdl_lambda, lamb3=ms_ssim_lambda, n_epochs=n_epochs, batch_size=batch_size, device=device, display_step=display_step,
-          test_dataset=test_dataset, my_dataset=my_dataset, experiment_dir=experiment_dir)
+    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=recon_l, lambr1=recon_lambda, n_epochs=n_epochs, 
+          batch_size=batch_size, device=device, display_step=display_step, test_dataset=test_dataset, my_dataset=my_dataset, 
+          experiment_dir=experiment_dir)

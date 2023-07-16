@@ -13,16 +13,37 @@ import os
 
 # import utils.calculator as cal
 
+
+def crop(image, new_shape):
+    '''
+    Function for cropping an image tensor: Given an image tensor and the new shape,
+    crops to the center pixels.
+    Parameters:
+        image: image tensor of shape (batch size, channels, height, width)
+        new_shape: a torch.Size object with the shape you want x to have
+    '''
+    padding_y = (image.shape[-2]-new_shape[-2]) // 2
+    padding_x = (image.shape[-1]-new_shape[-1]) // 2
+    odd_y, odd_x = (image.shape[-2]-new_shape[-2]) % 2, (image.shape[-1]-new_shape[-1]) % 2
+    # Crops whole batch or a single image
+    if image.dim() > 3:
+      cropped_image = image[:, :, padding_y+odd_y:image.shape[-2]-padding_y, padding_x+odd_x:image.shape[-1]-padding_x]
+    else:
+      cropped_image = image[:, padding_y+odd_y:image.shape[-2]-padding_y, padding_x+odd_x:image.shape[-1]-padding_x]
+    return cropped_image
+
+
 def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
-    pred = Image.fromarray((pred.detach().cpu().numpy().squeeze() * 255).astype(np.uint8))
-    input1 = Image.fromarray((input1.detach().cpu().numpy().squeeze() * 255).astype(np.uint8))
-    input2 = Image.fromarray((input2.detach().cpu().numpy().squeeze() * 255).astype(np.uint8))
-    labels = Image.fromarray((labels.detach().cpu().numpy().squeeze() * 255).astype(np.uint8))
-    
+    input1, input2 = crop(input1[0], pred.shape), crop(input2[0], pred.shape)
+    pred = Image.fromarray(np.squeeze((pred[0].detach().cpu().numpy() * 255), axis=0))
+    input1 = Image.fromarray(np.squeeze((input1.detach().cpu().numpy() * 255), axis=0))
+    input2 = Image.fromarray(np.squeeze((input2.detach().cpu().numpy() * 255), axis=0))
+    labels = Image.fromarray(np.squeeze((labels[0].detach().cpu().numpy() * 255), axis=0))
     # Gif for generated triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + 'true_.gif', save_all=True, append_images=[labels, input2], duration=500, loop=0)
     # Gif for ground truth triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + 'pred_.gif', save_all=True, append_images=[pred, input2], duration=500, loop=0)
+
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -44,9 +65,11 @@ def show_tensor_images(image_tensor, num_images=16):
 
 
 def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
+    input1, input2 = crop(input1[0], pred.shape), crop(input2[0], pred.shape)
+    # print('TEST - input1', input1.shape, 'input2', input2.shape, 'pred', pred.shape, 'labels', labels.shape)
     pred = Image.fromarray(np.squeeze((pred[0].detach().cpu().numpy() * 255), axis=0))
-    input1 = Image.fromarray(np.squeeze((input1[0].detach().cpu().numpy() * 255), axis=0))
-    input2 = Image.fromarray(np.squeeze((input2[0].detach().cpu().numpy() * 255), axis=0))
+    input1 = Image.fromarray(np.squeeze((input1.detach().cpu().numpy() * 255), axis=0))
+    input2 = Image.fromarray(np.squeeze((input2.detach().cpu().numpy() * 255), axis=0))
     labels = Image.fromarray(np.squeeze((labels[0].detach().cpu().numpy() * 255), axis=0))
     # Gif for generated triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + '_true.gif', save_all=True, append_images=[labels, input2], duration=500, loop=0)

@@ -9,10 +9,10 @@ import torch.nn as nn
 import os
 
 
-class Discriminator(nn.Module):
+class DiscriminatorCrop(nn.Module):
 
     def __init__(self, input_channels, hidden_channels):
-        super(Discriminator, self).__init__()
+        super(DiscriminatorCrop, self).__init__()
                 
         self.conv_blocks = nn.Sequential(
             nn.Conv2d(input_channels, hidden_channels, kernel_size=4, stride=2, padding=1, bias=False),
@@ -38,11 +38,7 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(hidden_channels * 8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Dropout2d(0.25),
-            nn.Conv2d(hidden_channels * 8, hidden_channels * 8, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(hidden_channels * 8),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Dropout2d(0.25),
-            nn.Conv2d(hidden_channels * 8, 1, kernel_size=4, stride=1, padding=0, bias=False)
+            nn.Conv2d(hidden_channels * 8, 1, kernel_size=4, stride=2, padding=0, bias=False)
             )
     
     def forward(self, data):
