@@ -16,9 +16,7 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, lambr1=None, dev
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
     # prints gen_adv_loss value
-    print("gen_adv_loss: ", gen_adv_loss)
     gen_recon1 = r1(real, preds)
-    print("gen_recon1: ", gen_recon1)
     gen_loss = (gen_adv_loss * adv_lambda) + (gen_recon1 * lambr1)
     return gen_loss
 

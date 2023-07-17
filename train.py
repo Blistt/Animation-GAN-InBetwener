@@ -7,16 +7,20 @@ from generator_crop import UNetCrop
 from generator_light import GeneratorLight
 from discriminator_crop import DiscriminatorCrop
 from discriminator_full import DiscriminatorFull
-from utils.utils import weights_init, visualize_batch, create_gif
+from utils.utils import weights_init, visualize_batch, create_gif, visualize_batch_eval
 from dataset_class import MyDataset
 from loss import get_gen_loss
 from test import test
 import os
 from torchvision.utils import save_image
+import torchmetrics
+import eval.my_metrics as my_metrics
+import eval.chamfer_dist as chamfer_dist
+from collections import defaultdict
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=100, n_epochs=10, 
-          batch_size=12, device='cuda:0', display_step=20, test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
+          batch_size=12, device='cuda:0', metrics=None, display_step=20, test_dataset=None, my_dataset=None, experiment_dir='exp/'):  
     
     # stores generator losses
     tr_gen_losses = []  
@@ -24,6 +28,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     # stores discriminator losses
     test_gen_losses = []
     test_disc_losses = []
+    # Stores metrics
+    results = defaultdict(list)
     dataloader = DataLoader(tra_dataset, batch_size=batch_size, shuffle=True)
     
 
@@ -41,7 +47,6 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
-            print('input1: ', input1.shape, 'input2: ', input2.shape, 'preds: ', preds.shape)
             gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
             gen_loss.backward()
             gen_opt.step()
@@ -74,13 +79,16 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             # Evaluate the model on the test dataset
             with torch.no_grad():
-                test_gen_loss, test_disc_loss = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,
-                                                     lambr1=lambr1, batch_size=batch_size, device=device,
+                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,
+                                                     lambr1=lambr1, batch_size=batch_size, metrics=metrics, device=device,
                                                      experiment_dir=experiment_dir+'test/')
+            # Aggregates losses and metrics so far
             test_gen_losses.append(test_gen_loss)
             test_disc_losses.append(test_disc_loss)
-
-        
+            for key, value in epoch_metrics.items():
+                results[key].append(value.item())
+            
+       
         '''
         Saves checkpoints, visualizes predictions and plots losses
         '''
@@ -112,20 +120,20 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
             # Saves torch image with the batch of predicted and real images
-            save_image(real, train_dir + str(epoch) + '_real.png', nrows=2, normalize=True)
-            save_image(preds, train_dir + str(epoch) + '_preds.png', nrows=2, normalize=True)
+            save_image(real, train_dir + str(epoch) + '_real.png', nrows=4, normalize=True)
+            save_image(preds, train_dir + str(epoch) + '_preds.png', nrows=4, normalize=True)
             create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
 
             # Saves checkpoing with model's current state
             torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint' + str(epoch) + '.pth')
             torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint' + str(epoch) + '.pth')
 
-        
-        # print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-        # f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
+            # Plots metrics
+            visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='test')
 
-                    
         
+        print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
+        f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
         
         # Keeps a log of the training and testing losses
         with open(experiment_dir + 'training_log.txt', 'a') as f:
@@ -141,7 +149,7 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    recon_l = nn.BCELoss().to(device)           # Reconstruction loss 1
+    recon_l = nn.L1Loss()                   # Reconstruction loss 1
     # gdl_l = GDL(device)                   # Reconstruction loss 2
     # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
     adv_lambda = 1.0                 # Adversarial loss weight
@@ -161,10 +169,11 @@ if __name__ == '__main__':
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
 
+
     '''Model parameters'''
-    gen = GeneratorLight(label_dim).to(device)
+    gen = UNetCrop(input_dim, label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
-    disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
+    disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
 
 
@@ -173,7 +182,6 @@ if __name__ == '__main__':
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
-
     # Training dataset
     train_data_dir = 'mini_datasets/mini_train_triplets/'
     # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
@@ -188,6 +196,18 @@ if __name__ == '__main__':
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
     my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                            crop_shape=target_size)
+    
+
+    '''
+    Evaluation parameters
+    '''
+    metrics = torchmetrics.MetricCollection({
+        'psnr': my_metrics.PSNRMetricCPU(),
+        'ssim': my_metrics.SSIMMetricCPU(),
+        'chamfer': chamfer_dist.ChamferDistance2dMetric(binary=0.5),
+        'mse': torchmetrics.MeanSquaredError(),
+    }).to(device).eval()
+
 
     '''
     Visualization parameters
