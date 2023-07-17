@@ -120,8 +120,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
             # Saves torch image with the batch of predicted and real images
-            save_image(real, train_dir + str(epoch) + '_real.png', nrows=4, normalize=True)
-            save_image(preds, train_dir + str(epoch) + '_preds.png', nrows=4, normalize=True)
+            save_image(real, train_dir + str(epoch) + '_real.png', nrow=4, normalize=True)
+            save_image(preds, train_dir + str(epoch) + '_preds.png', nrow=4, normalize=True)
             create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
 
             # Saves checkpoing with model's current state
