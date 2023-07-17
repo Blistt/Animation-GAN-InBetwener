@@ -175,12 +175,12 @@ if __name__ == '__main__':
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),])
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
@@ -190,7 +190,7 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 10
-    experiment_dir = 'exp0/'
+    experiment_dir = 'exp_temp/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
