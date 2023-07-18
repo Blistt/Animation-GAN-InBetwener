@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import crop
+from utils.utils import crop
 
 class ContractingBlock(nn.Module):
     '''
@@ -121,7 +121,7 @@ class FeatureMapBlock(nn.Module):
         return x
 
 
-class UNet(nn.Module):
+class UNetFull(nn.Module):
     '''
     UNet Class
     A series of 4 contracting blocks followed by 4 expanding blocks to
@@ -132,7 +132,7 @@ class UNet(nn.Module):
         output_channels: the number of channels to expect for a given output
     '''
     def __init__(self, input_channels, output_channels, hidden_channels=32, use_dropout=False, use_bn=False):
-        super(UNet, self).__init__()
+        super(UNetFull, self).__init__()
         self.upfeature = FeatureMapBlock(input_channels, hidden_channels)
         self.contract1 = ContractingBlock(hidden_channels, use_dropout=use_dropout, use_bn=use_bn)
         self.contract2 = ContractingBlock(hidden_channels * 2, use_dropout=use_dropout, use_bn=use_bn)

@@ -83,6 +83,11 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         tr_gen_losses.append(gen_epoch_loss/len(dataloader))
         tr_disc_losses.append(disc_epoch_loss/len(dataloader))
 
+
+        # See image values for the first image in the batch
+        print('preds')
+        print(preds[0])
+        print()
         
         '''
         Performs testing if specified

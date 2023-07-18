@@ -40,10 +40,16 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
 
         '''Compute evaluation metrics'''
         if metrics is not None:
+            # Transfer tensors to other device to avoid issues with memory leak
+            other_device = 'cuda:1' if preds.device == torch.device('cuda:0') else 'cuda:0'
+            preds = preds.to(other_device)
+            real = real.to(other_device)
+            
+            # Compute metrics
             raw_metrics = metrics(preds, real)
             for k, v in raw_metrics.items():
                 metrics_epoch[k].append(v.item())
-            write_log(metrics_epoch, experiment_dir, 'test')    #Stores the metrics in a log file
+            write_log(metrics_epoch, experiment_dir, 'test')    # Stores the metrics in a log file
 
             
 
