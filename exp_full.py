@@ -67,12 +67,13 @@ if __name__ == '__main__':
     '''
     Evaluation parameters
     '''
+    other_device = 'cuda:1' if device == torch.device('cuda:0') else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
         'chamfer': chamfer_dist.ChamferDistance2dMetric(binary=0.5),
         'mse': torchmetrics.MeanSquaredError(),
-    }).to(device).eval()
+    }).to(other_device).eval()
 
 
     '''

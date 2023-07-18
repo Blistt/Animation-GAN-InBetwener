@@ -11,16 +11,16 @@ import os
 import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
-from train_crop import train
+from train import train
 
 
 if __name__ == '__main__':
     
-    device = 'cuda:0'
+    device = 'cuda:1'
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    recon_l = nn.L1Loss()                   # Reconstruction loss 1
+    recon_l = nn.BCELoss()                   # Reconstruction loss 1
     # gdl_l = GDL(device)                   # Reconstruction loss 2
     # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
     adv_lambda = 0.05                 # Adversarial loss weight
@@ -73,12 +73,14 @@ if __name__ == '__main__':
     '''
     Evaluation parameters
     '''
+    other_device = 'cuda:1' if device == torch.device('cuda:0') else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
         'chamfer': chamfer_dist.ChamferDistance2dMetric(binary=0.5),
         'mse': torchmetrics.MeanSquaredError(),
-    }).to(device).eval()
+    }).to(other_device).eval()
+
 
 
     '''
@@ -88,17 +90,17 @@ if __name__ == '__main__':
     experiment_dir = 'exp1_crop_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
-    # Loads pre-trained model if specified
-    pretrained = False
-    if pretrained:
-        loaded_state = torch.load("pix2pix_15000.pth")
-        gen.load_state_dict(loaded_state["gen"])
-        gen_opt.load_state_dict(loaded_state["gen_opt"])
-        disc.load_state_dict(loaded_state["disc"])
-        disc_opt.load_state_dict(loaded_state["disc_opt"])
-    else:
-        gen = gen.apply(weights_init)
-        disc = disc.apply(weights_init)
+    # # Loads pre-trained model if specified
+    # pretrained = False
+    # if pretrained:
+    #     loaded_state = torch.load("pix2pix_15000.pth")
+    #     gen.load_state_dict(loaded_state["gen"])
+    #     gen_opt.load_state_dict(loaded_state["gen_opt"])
+    #     disc.load_state_dict(loaded_state["disc"])
+    #     disc_opt.load_state_dict(loaded_state["disc_opt"])
+    # else:
+    #     gen = gen.apply(weights_init)
+    #     disc = disc.apply(weights_init)
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=recon_l, lambr1=recon_lambda, n_epochs=n_epochs, 
           batch_size=batch_size, device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,

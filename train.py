@@ -82,6 +82,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         # Aggregates losses so far
         tr_gen_losses.append(gen_epoch_loss/len(dataloader))
         tr_disc_losses.append(disc_epoch_loss/len(dataloader))
+        
 
         
         '''
