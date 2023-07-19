@@ -9,7 +9,8 @@ from collections import defaultdict
 import numpy as np
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BCELoss(), lambr1=0.5, metrics=None, batch_size=12, 
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BCELoss(), lambr1=0.5, 
+         r2=None, r3=None, lambr2=None, lambr3=None, metrics=None, batch_size=12, 
          device='cuda', experiment_dir='exp/'):
     '''
     Tests a single epoch
@@ -23,7 +24,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
 
         preds = gen(input1, input2)
 
-        gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, lambr1=lambr1, device=device)
+        gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, lambr1=lambr1, 
+                                r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, device=device)
 
         '''Train discriminator'''
         # Discriminator loss for predicted images
@@ -41,7 +43,7 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
         '''Compute evaluation metrics'''
         if metrics is not None:
             # Transfer tensors to other device to avoid issues with memory leak
-            other_device = 'cuda:1' if preds.device == torch.device('cuda:0') else 'cuda:0'
+            other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
             preds = preds.to(other_device)
             real = real.to(other_device)
             

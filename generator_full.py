@@ -147,7 +147,7 @@ class UNetFull(nn.Module):
         self.expand4 = ExpandingBlock(hidden_channels * 4, use_bn=use_bn)
         self.expand5 = ExpandingBlock(hidden_channels * 2, use_bn=use_bn)
         self.downfeature = FeatureMapBlock(hidden_channels, output_channels)
-        # self.sigmoid = torch.nn.Sigmoid()
+        self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, i1, i2):
         '''
@@ -170,5 +170,5 @@ class UNetFull(nn.Module):
         x11 = self.expand4(x10, x1)
         x12 = self.expand5(x11, x0)
         xn = self.downfeature(x12)
-        # return self.sigmoid(xn)
-        return xn
+        return self.sigmoid(xn)
+        # return xn

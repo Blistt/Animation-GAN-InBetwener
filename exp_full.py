@@ -10,7 +10,7 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
-
+from loss import GDL, MS_SSIM
 
 if __name__ == '__main__':
     
@@ -18,20 +18,22 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    recon_l = nn.L1Loss()                   # Reconstruction loss 1
-    # gdl_l = GDL(device)                   # Reconstruction loss 2
-    # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
-    adv_lambda = 1.0                 # Adversarial loss weight
-    recon_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r1 = nn.L1Loss()                  # Reconstruction loss 1
+    r2 = GDL(device)                   # Reconstruction loss 2
+    r3 = MS_SSIM(device)         # Reconstruction loss 3
+    adv_lambda = 0.05                 # Adversarial loss weight
+    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r2_lambda = 1.0                  # Reconstruction loss 2 weight
+    r3_lambda = 1.0                  # Reconstruction loss 3 weight 
 
 
     '''Training loop parameters'''
-    n_epochs = 100                      # Number of epochs
+    n_epochs = 1000                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
-    batch_size = 6                     # Batch size
+    batch_size = 12                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
@@ -44,20 +46,20 @@ if __name__ == '__main__':
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
     disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
-
+    save_checkpoints = False
 
     '''Dataset parameters'''
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
-    binary_threshold = 0.75
+    binary_threshold = 0.0
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
@@ -79,8 +81,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 1
-    experiment_dir = 'exp1_full/'
+    display_step = 10
+    experiment_dir = 'exp2_full_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -95,6 +97,7 @@ if __name__ == '__main__':
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
-    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=recon_l, lambr1=recon_lambda, n_epochs=n_epochs, 
-          batch_size=batch_size, device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset, my_dataset=my_dataset, 
-          experiment_dir=experiment_dir)
+    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
+          r2=r2, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
+          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
+          my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)

@@ -12,6 +12,7 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
+from loss import GDL, MS_SSIM
 
 
 if __name__ == '__main__':
@@ -20,12 +21,13 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    recon_l = nn.BCELoss()                   # Reconstruction loss 1
-    # gdl_l = GDL(device)                   # Reconstruction loss 2
-    # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
+    r1 = nn.BCEWithLogitsLoss().to(device)                 # Reconstruction loss 1
+    # r2 = GDL(device)                   # Reconstruction loss 2
+    # r3 = MS_SSIM(device)            # Reconstruction loss 3
     adv_lambda = 0.05                 # Adversarial loss weight
-    recon_lambda = 1.0                  # Reconstruction loss 1 weight        
-
+    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r2_lambda = 1.0                  # Reconstruction loss 2 weight
+    r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
     n_epochs = 100                      # Number of epochs
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
-    batch_size = 8                     # Batch size
+    batch_size = 4                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
@@ -73,7 +75,7 @@ if __name__ == '__main__':
     '''
     Evaluation parameters
     '''
-    other_device = 'cuda:1' if device == torch.device('cuda:0') else 'cuda:0'
+    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
@@ -90,18 +92,53 @@ if __name__ == '__main__':
     experiment_dir = 'exp1_crop_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
-    # # Loads pre-trained model if specified
-    # pretrained = False
-    # if pretrained:
-    #     loaded_state = torch.load("pix2pix_15000.pth")
-    #     gen.load_state_dict(loaded_state["gen"])
-    #     gen_opt.load_state_dict(loaded_state["gen_opt"])
-    #     disc.load_state_dict(loaded_state["disc"])
-    #     disc_opt.load_state_dict(loaded_state["disc_opt"])
-    # else:
-    #     gen = gen.apply(weights_init)
-    #     disc = disc.apply(weights_init)
+    # Loads pre-trained model if specified
+    pretrained = True
+    if pretrained:
+        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
+        gen.load_state_dict(loaded_state)
+    else:
+        gen = gen.apply(weights_init)
+        disc = disc.apply(weights_init)
 
-    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=recon_l, lambr1=recon_lambda, n_epochs=n_epochs, 
-          batch_size=batch_size, device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
+    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
+          r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
+          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
+    
+    # save parameters in a text file
+    with open(experiment_dir + 'parameters.txt', 'w') as f:
+        print('Parameters:', file=f)
+        print('adv_lambda:', adv_lambda, file=f)
+        print('r1_lambda:', r1_lambda, file=f)
+        print('r2_lambda:', r2_lambda, file=f)
+        print('r3_lambda:', r3_lambda, file=f)
+        print('n_epochs:', n_epochs, file=f)
+        print('batch_size:', batch_size, file=f)
+        print('lr:', lr, file=f)
+        print('b1:', b1, file=f)
+        print('b2:', b2, file=f)
+        print('img_size:', img_size, file=f)
+        print('target_size:', target_size, file=f)
+        print('binary_threshold:', binary_threshold, file=f)
+        print('display_step:', display_step, file=f)
+        print('experiment_dir:', experiment_dir, file=f)
+        print('pretrained:', pretrained, file=f)
+        print('train_data_dir:', train_data_dir, file=f)
+        print('test_data_dir:', test_data_dir, file=f)
+        print('my_data_dir:', my_data_dir, file=f)
+        print('input_dim:', input_dim, file=f)
+        print('label_dim:', label_dim, file=f)
+        print('hidden_channels:', hidden_channels, file=f)
+        print('adv_l:', adv_l, file=f)
+        print('r1:', r1, file=f)
+        print('r2:', r2, file=f)
+        print('save_checkpoints:', save_checkpoints, file=f)
+        print('pretrained:', pretrained, file=f)
+        print('other_device:', other_device, file=f)
+        print('transform:', transform, file=f)
+        print('metrics:', metrics, file=f)
+        print('device:', device, file=f)
+        print('gen:', gen, file=f)
+        print('gen_opt:', gen_opt, file=f)
+        print('disc:', disc, file=f)

@@ -10,6 +10,7 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
+from loss import GDL, MS_SSIM
 
 
 if __name__ == '__main__':
@@ -18,11 +19,13 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    recon_l = nn.L1Loss()                   # Reconstruction loss 1
-    # gdl_l = GDL(device)                   # Reconstruction loss 2
-    # ms_ssim_l = MS_SSIM(device)         # Reconstruction loss 3
+    r1 = nn.L1Loss()                  # Reconstruction loss 1
+    r2 = GDL(device)                   # Reconstruction loss 2
+    r3 = MS_SSIM(device)         # Reconstruction loss 3
     adv_lambda = 0.05                 # Adversarial loss weight
-    recon_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r2_lambda = 1.0                  # Reconstruction loss 2 weight
+    r3_lambda = 1.0                  # Reconstruction loss 3 weight 
 
 
     '''Training loop parameters'''
@@ -81,7 +84,7 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 10
-    experiment_dir = 'exp1_light_mini/'
+    experiment_dir = 'exp2_light_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -96,6 +99,7 @@ if __name__ == '__main__':
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
-    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=recon_l, lambr1=recon_lambda, n_epochs=n_epochs, 
-          batch_size=batch_size, device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset, 
+    train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
+          r2=r2, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
+          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)

@@ -19,9 +19,16 @@ import eval.chamfer_dist as chamfer_dist
 from collections import defaultdict
 
 
-def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=100, n_epochs=10, 
-          batch_size=12, device='cuda:0', metrics=None, display_step=20, test_dataset=None, my_dataset=None, 
-        save_checkpoints=True, experiment_dir='exp/'):  
+def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
+          r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
+          metrics=None, display_step=20, test_dataset=None, my_dataset=None, save_checkpoints=True, 
+          experiment_dir='exp/'):  
+    
+    # Prints all function parameters in experiment directory
+    with open(experiment_dir + 'parameters.txt', 'w') as f:
+        for param in locals().items():
+            print(param, file=f)
+
     
     # stores generator losses
     tr_gen_losses = []  
@@ -47,7 +54,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
-            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
+            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
+                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
             gen_loss.backward()
             gen_opt.step()
 
@@ -94,9 +102,9 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             # Evaluate the model on the test dataset
             with torch.no_grad():
-                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,
-                                                     lambr1=lambr1, batch_size=batch_size, metrics=metrics, device=device,
-                                                     experiment_dir=experiment_dir+'test/')
+                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1, lambr1=lambr1,
+                                                     r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3,  batch_size=batch_size, metrics=metrics, 
+                                                     device=device, experiment_dir=experiment_dir+'test/')
             # Aggregates losses and metrics so far
             test_gen_losses.append(test_gen_loss)
             test_disc_losses.append(test_disc_loss)
@@ -124,8 +132,9 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 gen.eval(), disc.eval()     # Set the model to evaluation mode              
                 # Evaluate the model on the MY dataset
                 with torch.no_grad():
-                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1,  lambr1=lambr1,
-                                       batch_size=batch_size, device=device, experiment_dir=experiment_dir+'cool_test/')
+                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1, lambr1=lambr1,
+                                       r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                                       device=device, experiment_dir=experiment_dir+'cool_test/')
 
 
 
