@@ -21,9 +21,11 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.BCEWithLogitsLoss().to(device)                 # Reconstruction loss 1
+    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
     # r2 = GDL(device)                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
+    r2=None
+    r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
@@ -89,13 +91,13 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 1
-    experiment_dir = 'exp1_crop_mini/'
+    experiment_dir = 'exp000000_crop_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
     pretrained = True
     if pretrained:
-        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
+        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint90.pth')
         gen.load_state_dict(loaded_state)
     else:
         gen = gen.apply(weights_init)
@@ -106,39 +108,3 @@ if __name__ == '__main__':
           device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
     
-    # save parameters in a text file
-    with open(experiment_dir + 'parameters.txt', 'w') as f:
-        print('Parameters:', file=f)
-        print('adv_lambda:', adv_lambda, file=f)
-        print('r1_lambda:', r1_lambda, file=f)
-        print('r2_lambda:', r2_lambda, file=f)
-        print('r3_lambda:', r3_lambda, file=f)
-        print('n_epochs:', n_epochs, file=f)
-        print('batch_size:', batch_size, file=f)
-        print('lr:', lr, file=f)
-        print('b1:', b1, file=f)
-        print('b2:', b2, file=f)
-        print('img_size:', img_size, file=f)
-        print('target_size:', target_size, file=f)
-        print('binary_threshold:', binary_threshold, file=f)
-        print('display_step:', display_step, file=f)
-        print('experiment_dir:', experiment_dir, file=f)
-        print('pretrained:', pretrained, file=f)
-        print('train_data_dir:', train_data_dir, file=f)
-        print('test_data_dir:', test_data_dir, file=f)
-        print('my_data_dir:', my_data_dir, file=f)
-        print('input_dim:', input_dim, file=f)
-        print('label_dim:', label_dim, file=f)
-        print('hidden_channels:', hidden_channels, file=f)
-        print('adv_l:', adv_l, file=f)
-        print('r1:', r1, file=f)
-        print('r2:', r2, file=f)
-        print('save_checkpoints:', save_checkpoints, file=f)
-        print('pretrained:', pretrained, file=f)
-        print('other_device:', other_device, file=f)
-        print('transform:', transform, file=f)
-        print('metrics:', metrics, file=f)
-        print('device:', device, file=f)
-        print('gen:', gen, file=f)
-        print('gen_opt:', gen_opt, file=f)
-        print('disc:', disc, file=f)
