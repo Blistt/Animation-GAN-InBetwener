@@ -84,7 +84,7 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 1
-    experiment_dir = 'exp2_light_mini/'
+    experiment_dir = 'exp2_light_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

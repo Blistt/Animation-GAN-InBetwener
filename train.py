@@ -77,8 +77,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_epoch_loss += disc_loss.item()
             
 
-        '''Train generator again if discriminator loss is twice as low as generator loss'''
-        n_gen_steps = int((gen_loss.item() / (disc_loss.item())) - 1)   # Calculate number of additional training steps for generator
+        '''Trains generator again if discriminator loss is twice as low as generator loss'''
+        # Calculates number of additional training steps for generator (limits it to 10 max)
+        n_gen_steps = min(10, int((gen_loss.item() / (disc_loss.item())) - 1))  
+        print('Number of additional training steps for generator: ' + str(n_gen_steps))
         for i in range(n_gen_steps):
             # Train generator again
             gen_opt.zero_grad()
