@@ -21,13 +21,13 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
-    r2 = GDL(device)                   # Reconstruction loss 2
+    r1 = nn.MSELoss.to(device)             # Reconstruction loss 1
+    # r2 = GDL(device)                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
-    # r2=None
+    r2=None
     r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
-    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r1_lambda = 4.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 20
-    experiment_dir = 'exp5_crop_mini/'
+    experiment_dir = 'exp4_crop_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

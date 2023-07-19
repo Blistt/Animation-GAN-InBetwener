@@ -77,15 +77,15 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_epoch_loss += disc_loss.item()
             
 
-        # '''Train generator again if discriminator loss is twice as low as generator loss'''
-        # n_gen_steps = int((gen_loss.item() / (disc_loss.item() * 2)) - 1)   # Calculate number of additional training steps for generator
-        # for i in range(n_gen_steps):
-        #     # Train generator again
-        #     gen_opt.zero_grad()
-        #     preds = gen(input1, input2)
-        #     gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
-        #     gen_loss.backward()
-        #     gen_opt.step()
+        '''Train generator again if discriminator loss is twice as low as generator loss'''
+        n_gen_steps = int((gen_loss.item() / (disc_loss.item())) - 1)   # Calculate number of additional training steps for generator
+        for i in range(n_gen_steps):
+            # Train generator again
+            gen_opt.zero_grad()
+            preds = gen(input1, input2)
+            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
+            gen_loss.backward()
+            gen_opt.step()
 
         # Aggregates losses so far
         tr_gen_losses.append(gen_epoch_loss/len(dataloader))

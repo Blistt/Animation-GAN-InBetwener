@@ -23,13 +23,13 @@ if __name__ == '__main__':
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
     r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
     r2 = GDL(device)                   # Reconstruction loss 2
-    # r3 = MS_SSIM(device)            # Reconstruction loss 3
+    r3 = MS_SSIM(device)            # Reconstruction loss 3
     # r2=None
-    r3=None
+    # r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
-    r3_lambda = 6.0                  # Reconstruction loss 3 weight
+    r3_lambda = 1.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
     n_epochs = 501                      # Number of epochs
@@ -59,13 +59,13 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    train_data_dir = 'mini_datasets/mini_train_triplets/'
-    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    # train_data_dir = 'mini_datasets/mini_train_triplets/'
+    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size)
     # Testing dataset (optional)
-    test_data_dir = 'mini_datasets/mini_test_triplets/'
-    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    # test_data_dir = 'mini_datasets/mini_test_triplets/'
+    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)
     # MY dataset (optional)
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 20
-    experiment_dir = 'exp5_crop_mini/'
+    display_step = 1
+    experiment_dir = 'exp6_crop_full/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

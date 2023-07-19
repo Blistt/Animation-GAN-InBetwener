@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7f87d2c0c290>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7faea8af1350>)
 ('gen', UNetCrop(
   (upfeature): FeatureMapBlock(
     (conv): Conv2d(2, 64, kernel_size=(1, 1), stride=(1, 1))
@@ -118,11 +118,11 @@ Parameter Group 0
 ('adv_lambda', 0.05)
 ('r1', L1Loss())
 ('lambr1', 1.0)
-('r2', None)
-('r3', None)
+('r2', GDL())
+('r3', MS_SSIM())
 ('lambr2', 1.0)
 ('lambr3', 1.0)
-('n_epochs', 100)
+('n_epochs', 501)
 ('batch_size', 4)
 ('device', 'cuda:1')
 ('metrics', MetricCollection(
@@ -132,8 +132,8 @@ Parameter Group 0
   (ssim): SSIMMetricCPU()
 ))
 ('display_step', 1)
-('test_dataset', <dataset_class.MyDataset object at 0x7f87d15c1250>)
-('my_dataset', <dataset_class.MyDataset object at 0x7f87d15e5650>)
+('test_dataset', <dataset_class.MyDataset object at 0x7fae916b3610>)
+('my_dataset', <dataset_class.MyDataset object at 0x7faea8a62550>)
 ('save_checkpoints', False)
 ('experiment_dir', 'exp6_crop_mini/')
 ('f', <_io.TextIOWrapper name='exp6_crop_mini/parameters.txt' mode='w' encoding='UTF-8'>)

@@ -32,7 +32,7 @@ if __name__ == '__main__':
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 501                      # Number of epochs
+    n_epochs = 21                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -59,13 +59,13 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    train_data_dir = 'mini_datasets/mini_train_triplets/'
-    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    # train_data_dir = 'mini_datasets/mini_train_triplets/'
+    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size)
     # Testing dataset (optional)
-    test_data_dir = 'mini_datasets/mini_test_triplets/'
-    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    # test_data_dir = 'mini_datasets/mini_test_triplets/'
+    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)
     # MY dataset (optional)
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 20
-    experiment_dir = 'exp5_crop_mini/'
+    display_step = 1
+    experiment_dir = 'exp5_crop_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

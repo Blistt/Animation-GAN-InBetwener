@@ -25,11 +25,11 @@ if __name__ == '__main__':
     adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
-    r3_lambda = 1.0                  # Reconstruction loss 3 weight 
+    r3_lambda = 6.0                  # Reconstruction loss 3 weight 
 
 
     '''Training loop parameters'''
-    n_epochs = 500                      # Number of epochs
+    n_epochs = 21                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -56,12 +56,12 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    train_data_dir = 'mini_datasets/mini_train_triplets/'
-    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    # train_data_dir = 'mini_datasets/mini_train_triplets/'
+    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # Testing dataset (optional)
-    test_data_dir = 'mini_datasets/mini_test_triplets/'
-    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    # test_data_dir = 'mini_datasets/mini_test_triplets/'
+    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 10
+    display_step = 1
     experiment_dir = 'exp2_light_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
