@@ -77,17 +77,18 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_epoch_loss += disc_loss.item()
             
 
-        '''Trains generator again if discriminator loss is twice as low as generator loss'''
-        # Calculates number of additional training steps for generator (limits it to 10 max)
-        n_gen_steps = min(10, int((gen_loss.item() / (disc_loss.item())) - 1))  
-        print('Number of additional training steps for generator: ' + str(n_gen_steps))
-        for i in range(n_gen_steps):
-            # Train generator again
-            gen_opt.zero_grad()
-            preds = gen(input1, input2)
-            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
-            gen_loss.backward()
-            gen_opt.step()
+            '''Trains generator again if discriminator loss is twice as low as generator loss'''
+            # Calculates number of additional training steps for generator (limits it to 10 max)
+            n_gen_steps = min(10, int((gen_loss.item() / (disc_loss.item())) - 1))
+            if n_gen_steps > 0:  
+                print('Number of additional training steps for generator: ' + str(n_gen_steps))
+            for i in range(n_gen_steps):
+                # Train generator again
+                gen_opt.zero_grad()
+                preds = gen(input1, input2)
+                gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
+                gen_loss.backward()
+                gen_opt.step()
 
         # Aggregates losses so far
         tr_gen_losses.append(gen_epoch_loss/len(dataloader))
@@ -104,16 +105,16 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             # Evaluate the model on the test dataset
             with torch.no_grad():
-                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1, lambr1=lambr1,
-                                                     r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3,  batch_size=batch_size, metrics=metrics, 
-                                                     device=device, experiment_dir=experiment_dir+'test/')
+                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, 
+                                                                    display_step=display_step,r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
+                                                                    lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, metrics=metrics, 
+                                                                    device=device, experiment_dir=experiment_dir+'test/')
             # Aggregates losses and metrics so far
             test_gen_losses.append(test_gen_loss)
             test_disc_losses.append(test_disc_loss)
             for key, value in epoch_metrics.items():
                 results[key].append(value.item())
             
-       
         '''
         Saves checkpoints, visualizes predictions and plots losses
         '''
@@ -134,8 +135,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 gen.eval(), disc.eval()     # Set the model to evaluation mode              
                 # Evaluate the model on the MY dataset
                 with torch.no_grad():
-                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, r1=r1, lambr1=lambr1,
-                                       r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=display_step, r1=r1, 
+                                       lambr1=lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
                                        device=device, experiment_dir=experiment_dir+'cool_test/')
 
 
