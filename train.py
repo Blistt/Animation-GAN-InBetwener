@@ -115,6 +115,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             for key, value in epoch_metrics.items():
                 results[key].append(value.item())
             
+       
         '''
         Saves checkpoints, visualizes predictions and plots losses
         '''

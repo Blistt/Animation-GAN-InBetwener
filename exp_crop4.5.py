@@ -37,7 +37,7 @@ if __name__ == '__main__':
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
-    batch_size = 4                     # Batch size
+    batch_size = 8                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
