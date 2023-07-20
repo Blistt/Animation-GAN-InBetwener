@@ -9,16 +9,15 @@ from collections import defaultdict
 import numpy as np
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BCELoss(), lambr1=0.5, 
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_step=10, r1=nn.BCELoss(), lambr1=0.5, 
          r2=None, r3=None, lambr2=None, lambr3=None, metrics=None, batch_size=12, 
          device='cuda', experiment_dir='exp/'):
     '''
     Tests a single epoch
     '''
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    gen_epoch_loss = 0
-    disc_epoch_loss = 0
-    metrics_epoch = defaultdict(list)
+    gen_epoch_loss = []
+    disc_epoch_loss = []
     for input1, real, input2 in tqdm.tqdm(dataloader):
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
@@ -37,8 +36,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
         # Total discriminator loss
         disc_loss = (disc_fake_loss + disc_real_loss) / 2
         
-        gen_epoch_loss += gen_loss.item()
-        disc_epoch_loss += disc_loss.item()
+        gen_epoch_loss.append(gen_loss.item())
+        disc_epoch_loss.append(disc_loss.item())
 
         '''Compute evaluation metrics'''
         if metrics is not None:
@@ -50,8 +49,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
             # Compute metrics
             raw_metrics = metrics(preds, real)
             for k, v in raw_metrics.items():
-                metrics_epoch[k].append(v.item())
-            write_log(metrics_epoch, experiment_dir, 'test')    # Stores the metrics in a log file
+                results[k].append(v.item())
+            write_log(results, experiment_dir, 'test')    # Stores the metrics in a log file
 
             
 
@@ -61,6 +60,5 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, r1=nn.BC
         save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
         create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
 
-    mean_epoch_metrics = {k: np.mean(metrics_epoch[k]) for k,v in metrics_epoch.items()}
-
-    return gen_epoch_loss/len(dataloader), disc_epoch_loss/len(dataloader), mean_epoch_metrics
+    
+    return gen_epoch_loss, disc_epoch_loss, results

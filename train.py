@@ -43,6 +43,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     '''
     Training Loop
     '''
+    step_num = 0
     for epoch in range(n_epochs):
         print('Epoch: ' + str(epoch))
         gen.train(), disc.train()       # Set the models to training mode
@@ -51,17 +52,11 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         for input1, real, input2 in tqdm(dataloader):
             input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
-            '''Train generator'''
-            gen_opt.zero_grad()
-            preds = gen(input1, input2)
-            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
-                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
-            gen_loss.backward()
-            gen_opt.step()
-
             '''Train discriminator'''
             disc_opt.zero_grad()
             # Discriminator loss for predicted images
+            with torch.no_grad():
+                preds = gen(input1, input2)
             disc_pred_hat = disc(preds.detach())
             disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
             # Discriminator loss for real images
@@ -72,29 +67,55 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_loss.backward(retain_graph=True)
             disc_opt.step()
 
-            # Aggregates epoch losses
-            gen_epoch_loss += gen_loss.item()
-            disc_epoch_loss += disc_loss.item()
+
+            '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
+            # Calculates number of additional training steps for discriminator (limits it to 3 max)
+            if step_num != 0:
+                n_disc_steps = min(2, int((disc_loss.item() / (gen_loss.item())) - 1))
+                if n_disc_steps > 0:
+                    print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
+                    for i in range(n_disc_steps):
+                        # Train discriminator again
+                        disc_opt.zero_grad()
+                        # Discriminator loss for predicted images
+                        disc_pred_hat = disc(preds.detach())
+                        disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
+                        # Discriminator loss for real images
+                        disc_real_hat = disc(real)
+                        disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
+                        # Total discriminator loss
+                        disc_loss = (disc_fake_loss + disc_real_loss) / 2
+                        disc_loss.backward(retain_graph=True)
+                        disc_opt.step()
+
+            '''Train generator'''
+            gen_opt.zero_grad()
+            preds = gen(input1, input2)
+            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
+                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
+            gen_loss.backward()
+            gen_opt.step()
             
 
             '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            # Calculates number of additional training steps for generator (limits it to 10 max)
-            n_gen_steps = min(10, int((gen_loss.item() / (disc_loss.item())) - 1))
+            # Calculates number of additional training steps for generator (limits it to 3 max)
+            n_gen_steps = min(3, int((gen_loss.item() / (disc_loss.item())) - 1))
             if n_gen_steps > 0:  
                 print('Number of additional training steps for generator: ' + str(n_gen_steps))
-            for i in range(n_gen_steps):
-                # Train generator again
-                gen_opt.zero_grad()
-                preds = gen(input1, input2)
-                gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
-                gen_loss.backward()
-                gen_opt.step()
+                for i in range(n_gen_steps):
+                    # Train generator again
+                    gen_opt.zero_grad()
+                    preds = gen(input1, input2)
+                    gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
+                    gen_loss.backward()
+                    gen_opt.step()
 
-        # Aggregates losses so far
-        tr_gen_losses.append(gen_epoch_loss/len(dataloader))
-        tr_disc_losses.append(disc_epoch_loss/len(dataloader))
-        
+            tr_gen_losses.append(gen_loss.item())
+            tr_disc_losses.append(disc_loss.item())
 
+        # # Aggregates losses so far
+        # tr_gen_losses.append(gen_epoch_loss/len(dataloader))
+        # tr_disc_losses.append(disc_epoch_loss/len(dataloader))
         
         '''
         Performs testing if specified
@@ -105,15 +126,13 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             # Evaluate the model on the test dataset
             with torch.no_grad():
-                test_gen_loss, test_disc_loss, epoch_metrics = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, 
+                test_gen_loss, test_disc_loss, results = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, results=results,
                                                                     display_step=display_step,r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
                                                                     lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, metrics=metrics, 
                                                                     device=device, experiment_dir=experiment_dir+'test/')
-            # Aggregates losses and metrics so far
-            test_gen_losses.append(test_gen_loss)
-            test_disc_losses.append(test_disc_loss)
-            for key, value in epoch_metrics.items():
-                results[key].append(value.item())
+            # Aggregates test losses so far
+            test_gen_losses += test_gen_loss
+            test_disc_losses += test_disc_loss
             
        
         '''
@@ -160,6 +179,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             # Plots metrics
             visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='test')
 
+            step_num += 1
+
         
         print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
         f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
@@ -168,3 +189,4 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         with open(experiment_dir + 'training_log.txt', 'a') as f:
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
                 f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}", file=f)
+        

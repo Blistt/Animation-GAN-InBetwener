@@ -81,7 +81,7 @@ def visualize_batch(input1, labels, input2, pred, epoch, experiment_dir='exp/', 
             plt.plot(train_gen_losses, label='Generetor')
             plt.plot(train_disc_losses, label='Discriminator')
             plt.title("Training Loss per Epoch")
-            plt.xlabel("Epoch")
+            plt.xlabel("Training step")
             plt.ylabel("Loss")
             plt.subplot(1,2,2)
             plt.plot(test_gen_losses, label='Generetor')
@@ -109,7 +109,7 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='test
     for i, (metric, values) in enumerate(metrics.items()):
         axes[i].plot(values, label=metric)
         axes[i].set_title(metric)
-        axes[i].set_xlabel('epoch')
+        axes[i].set_xlabel('training step')
     
     # Save the plot to a file
     plt.savefig(f'{experiment_dir+train_test}/metrics_{epoch}.png')
