@@ -28,6 +28,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     with open(experiment_dir + 'parameters.txt', 'w') as f:
         for param in locals().items():
             print(param, file=f)
+    
+    # Creates directory to store training results
+    train_dir = experiment_dir + 'train/'
+    os.makedirs(train_dir, exist_ok=True)
 
     
     # stores generator losses
@@ -113,9 +117,13 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             tr_gen_losses.append(gen_loss.item())
             tr_disc_losses.append(disc_loss.item())
 
-        # # Aggregates losses so far
-        # tr_gen_losses.append(gen_epoch_loss/len(dataloader))
-        # tr_disc_losses.append(disc_epoch_loss/len(dataloader))
+            # Visualizes predictions every display_step steps
+            if step_num % display_step == 0:            
+                # Saves torch image with the batch of predicted and real images
+                save_image(real, train_dir + str(step_num) + '_real.png', nrow=4, normalize=True)
+                save_image(preds, train_dir + str(step_num) + '_preds.png', nrow=4, normalize=True)
+                create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
+            step_num += 1
         
         '''
         Performs testing if specified
@@ -162,14 +170,9 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
 
 
             '''MAIN VISUALIZATION BLOCK - Visualizes training predictions and plots training and testing losses'''
-            train_dir = experiment_dir + 'train/'
-            os.makedirs(train_dir, exist_ok=True)
             visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
-            # Saves torch image with the batch of predicted and real images
-            save_image(real, train_dir + str(epoch) + '_real.png', nrow=4, normalize=True)
-            save_image(preds, train_dir + str(epoch) + '_preds.png', nrow=4, normalize=True)
-            create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
+
 
             # Saves checkpoing with model's current state
             if save_checkpoints:
@@ -179,7 +182,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             # Plots metrics
             visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='test')
 
-            step_num += 1
+            
 
         
         print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "

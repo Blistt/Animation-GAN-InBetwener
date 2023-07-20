@@ -18,6 +18,7 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_ste
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     gen_epoch_loss = []
     disc_epoch_loss = []
+    step_num = 0
     for input1, real, input2 in tqdm.tqdm(dataloader):
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
@@ -52,13 +53,12 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_ste
                 results[k].append(v.item())
             write_log(results, experiment_dir, 'test')    # Stores the metrics in a log file
 
-            
+        if step_num % display_step == 0:
+            # Saves torch image with the batch of predicted and real images
+            save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
+            save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
+            create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
 
-    if epoch % display_step == 0:
-        # Saves torch image with the batch of predicted and real images
-        save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
-        save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
-        create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
+        step_num += 1
 
-    
     return gen_epoch_loss, disc_epoch_loss, results

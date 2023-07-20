@@ -90,7 +90,7 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 20
+    display_step = 8
     experiment_dir = 'exp4_crop_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
