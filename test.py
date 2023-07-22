@@ -9,7 +9,7 @@ from collections import defaultdict
 import numpy as np
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_step=10, r1=nn.BCELoss(), lambr1=0.5, 
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_step=10, plot_step=10, r1=nn.BCELoss(), lambr1=0.5, 
          r2=None, r3=None, lambr2=None, lambr3=None, metrics=None, batch_size=12, 
          device='cuda', experiment_dir='exp/'):
     '''
@@ -19,6 +19,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_ste
     gen_epoch_loss = []
     disc_epoch_loss = []
     step_num = 0
+    display_step = len(dataloader)//display_step
+    
     for input1, real, input2 in tqdm.tqdm(dataloader):
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
@@ -53,11 +55,12 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_ste
                 results[k].append(v.item())
             write_log(results, experiment_dir, 'test')    # Stores the metrics in a log file
 
-        if step_num % display_step == 0:
+        if step_num % display_step == 0 and epoch % plot_step == 0:
             # Saves torch image with the batch of predicted and real images
-            save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
-            save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
-            create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
+            id = str(epoch) + '_' + str(step_num)
+            save_image(real, experiment_dir + 'batch_' + id + '_real.png', nrow=4, normalize=True)
+            save_image(preds, experiment_dir + 'batch_' + id + '_preds.png', nrow=4, normalize=True)
+            create_gif(input1, real, input2, preds, experiment_dir, id) # Saves gifs of the predicted and ground truth triplets
 
         step_num += 1
 

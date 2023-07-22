@@ -1,7 +1,9 @@
 import torch
 from torch import nn
 from torchvision import transforms
+from generator_crop import UNetCrop
 from generator_light import GeneratorLight
+from discriminator_crop import DiscriminatorCrop
 from discriminator_full import DiscriminatorFull
 from utils.utils import weights_init
 from dataset_class import MyDataset
@@ -19,22 +21,24 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.L1Loss()                  # Reconstruction loss 1
+    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
     r2 = GDL(device)                   # Reconstruction loss 2
-    r3 = MS_SSIM(device)         # Reconstruction loss 3
+    r3 = MS_SSIM(device)            # Reconstruction loss 3
+    # r2=None
+    # r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
-    r3_lambda = 6.0                  # Reconstruction loss 3 weight 
+    r3_lambda = 5.0                  # Reconstruction loss 3 weight
 
 
     '''Training loop parameters'''
-    n_epochs = 21                      # Number of epochs
+    n_epochs = 10                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
     display_step = 6                   # How often to display/visualize the images
-    batch_size = 12                     # Batch size
+    batch_size = 8                     # Batch size
     lr = 0.0002                         # Learning rate
     b1 = 0.5                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
@@ -66,12 +70,12 @@ if __name__ == '__main__':
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
     my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
-    
+
 
     '''
     Evaluation parameters
     '''
-    other_device = 'cuda:1' if device == torch.device('cuda:0') else 'cuda:0'
+    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
@@ -83,23 +87,30 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 1
+    display_step = 10
+    plot_step = 1
     experiment_dir = 'exp2_light_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
     pretrained = False
     if pretrained:
-        loaded_state = torch.load("pix2pix_15000.pth")
-        gen.load_state_dict(loaded_state["gen"])
-        gen_opt.load_state_dict(loaded_state["gen_opt"])
-        disc.load_state_dict(loaded_state["disc"])
-        disc_opt.load_state_dict(loaded_state["disc_opt"])
+        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
+        gen.load_state_dict(loaded_state)
     else:
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
+    # Records time it takes to train the model
+    import time
+    start_time = time.time()
+
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
+    
+    # Saves the time it took in a text file in experiment directory
+    with open(experiment_dir + 'time.txt', 'w') as f:
+        f.write(f'Training took {(time.time() - start_time)/60} minutes')
+

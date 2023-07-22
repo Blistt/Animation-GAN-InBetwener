@@ -32,7 +32,7 @@ if __name__ == '__main__':
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 21                      # Number of epochs
+    n_epochs = 10                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -90,7 +90,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 250
+    display_step = 10
+    plot_step = 1
     experiment_dir = 'exp4_crop_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
     
     # Saves the time it took in a text file in experiment directory

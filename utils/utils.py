@@ -67,7 +67,7 @@ def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
                 duration=500, loop=0)
 
 
-def visualize_batch(input1, labels, input2, pred, epoch, experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
+def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
                     test_gen_losses=None, test_disc_losses=None, figsize=(20,10)):
         
         # Creates experiment directory if it doesn't exist'
@@ -87,7 +87,7 @@ def visualize_batch(input1, labels, input2, pred, epoch, experiment_dir='exp/', 
             plt.plot(test_gen_losses, label='Generetor')
             plt.plot(test_disc_losses, label='Discriminator')
             plt.title("Testing Loss per Epoch")
-            plt.xlabel("Epoch")
+            plt.xlabel("Testing step")
             plt.ylabel("Loss")
             plt.legend()
             plt.savefig(experiment_dir + 'loss' + str(epoch) + '.png')

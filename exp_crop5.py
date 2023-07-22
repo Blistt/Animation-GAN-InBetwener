@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # r2=None
     r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
-    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    r1_lambda = 2.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
@@ -90,8 +90,9 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 20
-    experiment_dir = 'exp5_crop_mini/'
+    display_step = 1
+    plot_step = 20
+    experiment_dir = 'exp5_crop_miniiii/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -103,8 +104,15 @@ if __name__ == '__main__':
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
+    # Records time it takes to train the model
+    import time
+    start_time = time.time()
+
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, test_dataset=test_dataset,
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
     
+    # Saves the time it took in a text file in experiment directory
+    with open(experiment_dir + 'time.txt', 'w') as f:
+        f.write(f'Training took {(time.time() - start_time)/60} minutes')

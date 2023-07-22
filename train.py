@@ -7,7 +7,7 @@ from generator_crop import UNetCrop
 from generator_light import GeneratorLight
 from discriminator_crop import DiscriminatorCrop
 from discriminator_full import DiscriminatorFull
-from utils.utils import weights_init, visualize_batch, create_gif, visualize_batch_eval
+from utils.utils import weights_init, visualize_batch_loss, create_gif, visualize_batch_eval
 from dataset_class import MyDataset
 from loss import get_gen_loss
 from test import test
@@ -21,7 +21,7 @@ from collections import defaultdict
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
-          metrics=None, display_step=20, test_dataset=None, my_dataset=None, save_checkpoints=True, 
+          metrics=None, display_step=4, plot_step=10, test_dataset=None, my_dataset=None, save_checkpoints=True, 
           experiment_dir='exp/'):  
     
     # Prints all function parameters in experiment directory
@@ -40,12 +40,12 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     # stores discriminator losses
     test_gen_losses = []
     test_disc_losses = []
-    # Stores metrics
-    results = defaultdict(list)
+    results = defaultdict(list)     # Stores metrics
     dataloader = DataLoader(tra_dataset, batch_size=batch_size, shuffle=True)
-    
+    train_display_step = len(dataloader)//display_step
+
     '''
-    Training Loop
+    ######################## TRAINING LOOP ############################
     '''
     step_num = 0
     for epoch in range(n_epochs):
@@ -73,8 +73,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
 
 
             '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
-            # Calculates number of additional training steps for discriminator (limits it to 3 max)
             if step_num != 0:
+                # Calculates number of additional training steps for discriminator (limits it to 2 max)
                 n_disc_steps = min(2, int((disc_loss.item() / (gen_loss.item())) - 1))
                 if n_disc_steps > 0:
                     print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
@@ -102,8 +102,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             
 
             '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            # Calculates number of additional training steps for generator (limits it to 3 max)
-            n_gen_steps = min(3, int((gen_loss.item() / (disc_loss.item())) - 1))
+            n_gen_steps = min(3, int((gen_loss.item() / (disc_loss.item())) - 1))   # Calculates number of additional training 
+                                                                                    # steps for generator (limits it to 3 max)
             if n_gen_steps > 0:  
                 print('Number of additional training steps for generator: ' + str(n_gen_steps))
                 for i in range(n_gen_steps):
@@ -113,83 +113,78 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                     gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, device=device, lambr1=lambr1)
                     gen_loss.backward()
                     gen_opt.step()
-
             tr_gen_losses.append(gen_loss.item())
             tr_disc_losses.append(disc_loss.item())
 
-            # Visualizes predictions every display_step steps
-            if step_num % display_step == 0:            
+            '''Visualizes predictions'''
+            if step_num % train_display_step == 0 and epoch % plot_step == 0:            
                 # Saves torch image with the batch of predicted and real images
                 save_image(real, train_dir + str(step_num) + '_real.png', nrow=4, normalize=True)
                 save_image(preds, train_dir + str(step_num) + '_preds.png', nrow=4, normalize=True)
-                create_gif(input1, real, input2, preds, experiment_dir+'train/', epoch) # Saves gifs of the predicted and ground truth triplets
+                create_gif(input1, real, input2, preds, experiment_dir+'train/', step_num) # Saves gifs of the predicted and ground truth triplets
+            
             step_num += 1
         
+
         '''
-        Performs testing if specified
+        ######################## TESTING ############################
         '''
         if test_dataset is not None:
             os.makedirs(experiment_dir+'test/', exist_ok=True)
             torch.cuda.empty_cache()    # Free up unused memory before starting testing process
             gen.eval(), disc.eval()     # Set the model to evaluation mode
-            # Evaluate the model on the test dataset
+            '''Evaluate the model on the test dataset'''
             with torch.no_grad():
                 test_gen_loss, test_disc_loss, results = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, results=results,
-                                                                    display_step=display_step,r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
-                                                                    lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, metrics=metrics, 
-                                                                    device=device, experiment_dir=experiment_dir+'test/')
-            # Aggregates test losses so far
+                                                                    display_step=display_step, plot_step=plot_step, r1=r1, lambr1=lambr1, 
+                                                                    r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                                                                    metrics=metrics, device=device, experiment_dir=experiment_dir+'test/')
+            # Aggregates test losses for the whole epoch
             test_gen_losses += test_gen_loss
             test_disc_losses += test_disc_loss
+        
+        '''Performs testing in MY dataset if specified'''
+        if my_dataset is not None:
+            my_display_step = 1
+            os.makedirs(experiment_dir+'cool_test/', exist_ok=True)
+            # Free up unused memory before starting testing process
+            torch.cuda.empty_cache()
+            gen.eval(), disc.eval()     # Set the model to evaluation mode              
+            with torch.no_grad():
+                unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=my_display_step, plot_step=plot_step, 
+                                   r1=r1, lambr1=lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                                    device=device, experiment_dir=experiment_dir+'cool_test/')
             
        
         '''
-        Saves checkpoints, visualizes predictions and plots losses
+        ################## PLOTS AND CHECKPOINTS ##################
         '''
-        if epoch % display_step == 0:
+        if epoch % plot_step == 0:
             # Save snapshot of model architecture``
             if epoch == 0:
                 with open(experiment_dir + 'gen_architecture.txt', 'w') as f:
                     print(gen, file=f)
                 with open(experiment_dir + 'disc_architecture.txt', 'w') as f:
                     print(disc, file=f)
-            '''
-            Performs testing in MY dataset if specified
-            '''
-            if my_dataset is not None:
-                os.makedirs(experiment_dir+'cool_test/', exist_ok=True)
-                # Free up unused memory before starting testing process
-                torch.cuda.empty_cache()
-                gen.eval(), disc.eval()     # Set the model to evaluation mode              
-                # Evaluate the model on the MY dataset
-                with torch.no_grad():
-                    unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=display_step, r1=r1, 
-                                       lambr1=lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
-                                       device=device, experiment_dir=experiment_dir+'cool_test/')
-
-
-
-            '''MAIN VISUALIZATION BLOCK - Visualizes training predictions and plots training and testing losses'''
-            visualize_batch(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
-                            train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
-
 
             # Saves checkpoing with model's current state
             if save_checkpoints:
                 torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint' + str(epoch) + '.pth')
                 torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint' + str(epoch) + '.pth')
 
+            # Plots losses
+            visualize_batch_loss(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
+                            train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
+
             # Plots metrics
             visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='test')
 
-            
-
-        
-        print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-        f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
-        
-        # Keeps a log of the training and testing losses
-        with open(experiment_dir + 'training_log.txt', 'a') as f:
+            # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-                f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}", file=f)
+            f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
+        
+            # Keeps a written log of the training and testing losses
+            with open(experiment_dir + 'training_log.txt', 'a') as f:
+                print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
+                    f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}", file=f)
         
