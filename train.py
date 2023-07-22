@@ -22,7 +22,7 @@ from collections import defaultdict
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
           metrics=None, display_step=4, plot_step=10, test_dataset=None, my_dataset=None, save_checkpoints=True, 
-          experiment_dir='exp/'):  
+          disc_extra=2, gen_extra=3, experiment_dir='exp/'):  
     
     # Prints all function parameters in experiment directory
     with open(experiment_dir + 'parameters.txt', 'w') as f:
@@ -51,8 +51,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     for epoch in range(n_epochs):
         print('Epoch: ' + str(epoch))
         gen.train(), disc.train()       # Set the models to training mode
-        gen_epoch_loss = 0              # Stores losses for display purposes
-        disc_epoch_loss = 0
+
         for input1, real, input2 in tqdm(dataloader):
             input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
@@ -75,7 +74,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
             if step_num != 0:
                 # Calculates number of additional training steps for discriminator (limits it to 2 max)
-                n_disc_steps = min(2, int((disc_loss.item() / (gen_loss.item())) - 1))
+                n_disc_steps = min(disc_extra, int((disc_loss.item() / (gen_loss.item())) - 1))
                 if n_disc_steps > 0:
                     print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
                     for i in range(n_disc_steps):
@@ -102,7 +101,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             
 
             '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            n_gen_steps = min(3, int((gen_loss.item() / (disc_loss.item())) - 1))   # Calculates number of additional training 
+            n_gen_steps = min(gen_extra, int((gen_loss.item() / (disc_loss.item())) - 1))   # Calculates number of additional training 
                                                                                     # steps for generator (limits it to 3 max)
             if n_gen_steps > 0:  
                 print('Number of additional training steps for generator: ' + str(n_gen_steps))
