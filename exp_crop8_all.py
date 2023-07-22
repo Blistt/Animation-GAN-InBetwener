@@ -94,7 +94,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp4.2_5_crop_all/'
+    experiment_dir = 'exp8_crop_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

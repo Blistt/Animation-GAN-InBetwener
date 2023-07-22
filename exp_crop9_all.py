@@ -24,7 +24,6 @@ if __name__ == '__main__':
     r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
     r2 = nn.L1Loss()                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
-    r2=None
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp4.2_5_crop_all/'
+    experiment_dir = 'exp9_crop_all/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
