@@ -43,8 +43,8 @@ if __name__ == '__main__':
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 2                      # Number of extra discriminator steps if outperformed by generator
+    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp4.2_crop_all/'
+    experiment_dir = 'exp8_crop_all_noextra/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

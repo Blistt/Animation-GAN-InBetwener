@@ -44,8 +44,8 @@ if __name__ == '__main__':
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 2                      # Number of extra discriminator steps if outperformed by generator
+    gen_extra = 0                      # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp2_light_all/'
+    experiment_dir = 'exp4_light_all_noextra/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -109,7 +109,8 @@ if __name__ == '__main__':
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, 
+          disc_extra=disc_extra, gen_extra=gen_extra, test_dataset=test_dataset,
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
     
     # Saves the time it took in a text file in experiment directory

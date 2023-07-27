@@ -12,7 +12,7 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
-from loss import GDL, MS_SSIM
+from loss import GDL, MS_SSIM, LaplacianPyramidLoss
 
 
 if __name__ == '__main__':
@@ -21,12 +21,11 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
-    r2 = GDL(device)                   # Reconstruction loss 2
+    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
+    r2 = nn.L1Loss()                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
-    # r2=None
     r3=None
-    adv_lambda = 0.05                 # Adversarial loss weight
+    adv_lambda = 0.5                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
@@ -92,9 +91,9 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 6
+    display_step = 10
     plot_step = 1
-    experiment_dir = 'exp5_crop_all_noextra/'
+    experiment_dir = 'exp9_crop_all_noextra/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified
@@ -116,8 +115,6 @@ if __name__ == '__main__':
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
           experiment_dir=experiment_dir)
     
-    
     # Saves the time it took in a text file in experiment directory
     with open(experiment_dir + 'time.txt', 'w') as f:
         f.write(f'Training took {(time.time() - start_time)/60} minutes')
-

@@ -17,9 +17,9 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None
                  lambr1=None, lambr3=None, lambr2=None, device='cuda:0'):
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
-    # prints gen_adv_loss value
     gen_recon1 = r1(real, preds)
     gen_loss = (gen_adv_loss * adv_lambda) + (gen_recon1 * lambr1)
+
     # Adds optional additional losses
     if r2 is not None:
         gen_recon2 = r2(real, preds)
@@ -99,8 +99,7 @@ class MS_SSIM(nn.Module):
         
         ssim_per_channel = torch.relu(ssim_per_channel)  # (batch, channel)
         mcs_and_ssim = torch.stack(mcs + [ssim_per_channel], dim=0)  # (level, batch, channel)
-        ms_ssim_val = torch.prod(mcs_and_ssim ** weights.view(-1, 1, 1), dim=0)
-    
+        ms_ssim_val = torch.prod(mcs_and_ssim ** weights.view(-1, 1, 1), dim=0)   
         return ms_ssim_val.mean()
     
 class LaplacianPyramidLoss(nn.Module):
@@ -131,4 +130,4 @@ class LaplacianPyramidLoss(nn.Module):
             ]).mean(0)
         else:
             assert 0
-        return ans
+        return ans.mean()

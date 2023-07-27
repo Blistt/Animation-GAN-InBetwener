@@ -12,7 +12,7 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
-from loss import GDL, MS_SSIM
+from loss import GDL, MS_SSIM, LaplacianPyramidLoss
 
 
 if __name__ == '__main__':
@@ -20,10 +20,10 @@ if __name__ == '__main__':
     device = 'cuda:1'
 
     '''Loss function parameters'''
-    adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.MSELoss().to(device)             # Reconstruction loss 1
-    # r2 = GDL(device)                   # Reconstruction loss 2
-    # r3 = MS_SSIM(device)            # Reconstruction loss 3
+    adv_l = nn.BCEWithLogitsLoss().to(device)                           # Adversarial loss
+    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')   # Reconstruction loss 1
+    # r2 = GDL(device)                                                  # Reconstruction loss 2
+    # r3 = MS_SSIM(device)                                              # Reconstruction loss 3
     r2=None
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
@@ -33,18 +33,18 @@ if __name__ == '__main__':
 
     '''Training loop parameters'''
     n_epochs = 6                      # Number of epochs
-    input_dim = 2                       # Input channels (1 for each grayscale input frame)
-    label_dim = 1                       # Output channels (1 for each grayscale output frame)
-    hidden_channels = 64                # Hidden channels of the generator and discriminator
-    display_step = 6                   # How often to display/visualize the images
-    batch_size = 8                     # Batch size
-    lr = 0.0002                         # Learning rate
-    b1 = 0.5                            # Adam: decay of first order momentum of gradient
-    b2 = 0.999                          # Adam: decay of second order momentum of gradient
-    img_size = (512, 512)                      # Frames' image size
-    target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 2                      # Number of extra discriminator steps if outperformed by generator
+    input_dim = 2                     # Input channels (1 for each grayscale input frame)
+    label_dim = 1                     # Output channels (1 for each grayscale output frame)
+    hidden_channels = 64              # Hidden channels of the generator and discriminator
+    display_step = 6                  # How often to display/visualize the images
+    batch_size = 8                    # Batch size
+    lr = 0.0002                       # Learning rate
+    b1 = 0.5                          # Adam: decay of first order momentum of gradient
+    b2 = 0.999                        # Adam: decay of second order momentum of gradient
+    img_size = (512, 512)             # Frames' image size
+    target_size = (373, 373)          # Cropped frames' image size
+    gen_extra = 2                     # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 3                    # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
