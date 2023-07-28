@@ -4,26 +4,30 @@ from torch import nn
 import torch
 from loss import get_gen_loss
 from torchvision.utils import save_image
-from utils.utils import create_gif
+from utils.utils import create_gif, write_log
+from collections import defaultdict
+import numpy as np
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, l1=nn.L1Loss(), l2=None, l3=None, lamb1=100, lamb2=100, lamb3=100, 
-         batch_size=12, device='cuda', experiment_dir='exp/'):
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results=None, display_step=10, plot_step=10, r1=nn.BCELoss(), lambr1=0.5, 
+         r2=None, r3=None, lambr2=None, lambr3=None, metrics=None, batch_size=12, 
+         device='cuda', experiment_dir='exp/'):
     '''
     Tests a single epoch
     '''
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    gen_epoch_loss = 0
-    disc_epoch_loss = 0
+    gen_epoch_loss = []
+    disc_epoch_loss = []
+    step_num = 0
+    display_step = len(dataloader)//display_step
+    
     for input1, real, input2 in tqdm.tqdm(dataloader):
-        input1 = input1.to(device)
-        real = real.to(device)
-        input2 = input2.to(device)
-
+        input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
         preds = gen(input1, input2)
-        gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=l1, l2=l2, l3=l3, 
-                                lamb1=lamb1, lamb2=lamb2, lamb3=lamb3, device=device)
+
+        gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, lambr1=lambr1, 
+                                r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, device=device)
 
         '''Train discriminator'''
         # Discriminator loss for predicted images
@@ -35,13 +39,29 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, l1=nn.L1
         # Total discriminator loss
         disc_loss = (disc_fake_loss + disc_real_loss) / 2
         
-        gen_epoch_loss += gen_loss.item()
-        disc_epoch_loss += disc_loss.item()
+        gen_epoch_loss.append(gen_loss.item())
+        disc_epoch_loss.append(disc_loss.item())
 
-    if epoch % display_step == 0:
-        # Saves torch image with the batch of predicted and real images
-        save_image(real, experiment_dir + 'batch_' + str(epoch) + '_real.png', nrow=4, normalize=True)
-        save_image(preds, experiment_dir + 'batch_' + str(epoch) + '_preds.png', nrow=4, normalize=True)
-        create_gif(input1, real, input2, preds, experiment_dir, epoch) # Saves gifs of the predicted and ground truth triplets
+        '''Compute evaluation metrics'''
+        if metrics is not None:
+            # Transfer tensors to other device to avoid issues with memory leak
+            other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
+            preds = preds.to(other_device)
+            real = real.to(other_device)
+            
+            # Compute metrics
+            raw_metrics = metrics(preds, real)
+            for k, v in raw_metrics.items():
+                results[k].append(v.item())
+            write_log(results, experiment_dir, 'test')    # Stores the metrics in a log file
 
-    return gen_epoch_loss/len(dataloader), disc_epoch_loss/len(dataloader)
+        if step_num % display_step == 0 and epoch % plot_step == 0:
+            # Saves torch image with the batch of predicted and real images
+            id = str(epoch) + '_' + str(step_num)
+            save_image(real, experiment_dir + 'batch_' + id + '_real.png', nrow=4, normalize=True)
+            save_image(preds, experiment_dir + 'batch_' + id + '_preds.png', nrow=4, normalize=True)
+            create_gif(input1, real, input2, preds, experiment_dir, id) # Saves gifs of the predicted and ground truth triplets
+
+        step_num += 1
+
+    return gen_epoch_loss, disc_epoch_loss, results

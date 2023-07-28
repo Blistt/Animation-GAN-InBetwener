@@ -10,15 +10,23 @@ import torch.cuda
 import torch.nn as nn
 import torch.nn.functional as F
 import utils.calculator as cal
+import kornia
 
 
-def get_gen_loss(preds, disc, real, adv_l, adv_lambda, l1=None, l2=None, l3=None, lamb1=None, lamb2=None, lamb3=None, device='cuda'):
+def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None, 
+                 lambr1=None, lambr3=None, lambr2=None, device='cuda:0'):
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
-    gen_l1 = l1(real, preds)
-    gen_l2 = l2(real, preds, device=device)
-    gen_l3 = l3(real, preds, device=device)
-    gen_loss = (gen_adv_loss * adv_lambda) + (gen_l1 * lamb1) + (gen_l2 * lamb2) + (gen_l3 * lamb3)
+    gen_recon1 = r1(real, preds)
+    gen_loss = (gen_adv_loss * adv_lambda) + (gen_recon1 * lambr1)
+
+    # Adds optional additional losses
+    if r2 is not None:
+        gen_recon2 = r2(real, preds)
+        gen_loss += gen_recon2 * lambr2
+    if r3 is not None:
+        gen_recon3 = r3(real, preds)
+        gen_loss += gen_recon3 * lambr3
     return gen_loss
 
 
@@ -64,13 +72,13 @@ class MS_SSIM(nn.Module):
         super(MS_SSIM, self).__init__()
         self.device = device
 
-    def forward(self, gen_frames, gt_frames, device='cuda:1'):
-        return 1 - self._cal_ms_ssim(gen_frames, gt_frames, device)
+    def forward(self, gen_frames, gt_frames):
+        return 1 - self._cal_ms_ssim(gen_frames, gt_frames)
         
-    def _cal_ms_ssim(self, gen_tensors, gt_tensors, device='cuda:1'):
+    def _cal_ms_ssim(self, gen_tensors, gt_tensors):
         weights = torch.Tensor([0.0448, 0.2856, 0.3001, 0.2363, 0.1333])
         if torch.cuda.is_available():
-            weights = weights.to(device)
+            weights = weights.to(self.device)
         
         gen = gen_tensors
         gt = gt_tensors
@@ -91,6 +99,35 @@ class MS_SSIM(nn.Module):
         
         ssim_per_channel = torch.relu(ssim_per_channel)  # (batch, channel)
         mcs_and_ssim = torch.stack(mcs + [ssim_per_channel], dim=0)  # (level, batch, channel)
-        ms_ssim_val = torch.prod(mcs_and_ssim ** weights.view(-1, 1, 1), dim=0)
-    
+        ms_ssim_val = torch.prod(mcs_and_ssim ** weights.view(-1, 1, 1), dim=0)   
         return ms_ssim_val.mean()
+    
+class LaplacianPyramidLoss(nn.Module):
+    def __init__(self, n_levels=3, colorspace=None, mode='l1'):
+        super().__init__()
+        self.n_levels = n_levels
+        self.colorspace = colorspace
+        self.mode = mode
+        assert self.mode in ['l1', 'l2']
+        return
+    def forward(self, preds, target, force_levels=None, force_mode=None):
+        if self.colorspace=='lab':
+            preds = kornia.color.rgb_to_lab(preds.float())
+            target = kornia.color.rgb_to_lab(target.float())
+        lvls = self.n_levels if force_levels==None else force_levels
+        preds = kornia.geometry.transform.build_pyramid(preds, lvls)
+        target = kornia.geometry.transform.build_pyramid(target, lvls)
+        mode = self.mode if force_mode==None else force_mode
+        if mode=='l1':
+            ans = torch.stack([
+                (p-t).abs().mean((1,2,3))
+                for p,t in zip(preds,target)
+            ]).mean(0)
+        elif mode=='l2':
+            ans = torch.stack([
+                (p-t).norm(dim=1, keepdim=True).mean((1,2,3))
+                for p,t in zip(preds,target)
+            ]).mean(0)
+        else:
+            assert 0
+        return ans.mean()
