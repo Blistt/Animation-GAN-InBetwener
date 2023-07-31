@@ -17,6 +17,8 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from collections import defaultdict
+import numpy as np
+from utils.utils import get_edt
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
@@ -41,6 +43,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     test_gen_losses = []
     test_disc_losses = []
     results = defaultdict(list)     # Stores metrics
+    epoch_results = defaultdict(list)     # Stores metrics for an epoch
     dataloader = DataLoader(tra_dataset, batch_size=batch_size, shuffle=True)
     train_display_step = len(dataloader)//display_step
 
@@ -94,6 +97,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
+
             gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
                                     lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
             gen_loss.backward()
@@ -141,6 +145,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             # Aggregates test losses for the whole epoch
             test_gen_losses += test_gen_loss
             test_disc_losses += test_disc_loss
+            # Calculates epoch's metrics
+            for metric in metrics:
+                epoch_results[metric].append(np.mean(results[metric]))
+            
         
         '''Performs testing in MY dataset if specified'''
         if my_dataset is not None:
@@ -176,7 +184,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
 
             # Plots metrics
-            visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='test')
+            visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='metrics_batch')
+            visualize_batch_eval(epoch_results, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
