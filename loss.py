@@ -1,9 +1,3 @@
-'''
-Created on Apr 14, 2020
-
-@author: lab1323pc
-'''
-
 import numpy as np
 import torch
 import torch.cuda
@@ -11,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import utils.calculator as cal
 import kornia
+from utils.utils import get_edt
+
 
 
 def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None, 
@@ -30,6 +26,19 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None
     return gen_loss
 
 
+def pre_train_loss(preds, real, r1, lambr1=1, r2=None, r3=None, lambr2=None, lambr3=None, device='cuda:0'):
+    gen_recon1 = r1(real, preds)
+    gen_loss = gen_recon1 * lambr1
+
+    # Adds optional additional losses
+    if r2 is not None:
+        gen_recon2 = r2(real, preds)
+        gen_loss += gen_recon2 * lambr2
+    if r3 is not None:
+        gen_recon3 = r3(real, preds)
+        gen_loss += gen_recon3 * lambr3
+    return gen_loss
+
 
 def gdl_loss(gen_frames, gt_frames, alpha=2, device='cuda:1'):
     filter_x = nn.Conv2d(1, 1, (1, 3), padding=(0, 1)).to(device)
@@ -48,9 +57,36 @@ def gdl_loss(gen_frames, gt_frames, alpha=2, device='cuda:1'):
     return torch.mean(grad_total)
 
 
+class EDT_Loss(nn.Module):
+    def __init__(self, device='cuda:1', sub_loss='l1'):
+        super(EDT_Loss, self).__init__()
+        self.device = device
+        self.sub_loss = sub_loss
+
+    def forward(self, preds, real):
+        with torch.no_grad():
+            # Gets the Euclidean Distance Transform of the real and predicted frames
+            real_edt = get_edt(real, self.device).to(self.device)
+            preds_edt = get_edt(preds, self.device).to(self.device)
+
+        # Calculates laplacian pyramid loss of edt transformed images if specified
+        if self.sub_loss == 'laplacian':
+            preds_edt = kornia.geometry.transform.build_pyramid(preds, 3)
+            real_edt = kornia.geometry.transform.build_pyramid(real, 3)
+            loss = torch.stack([
+                (p-t).abs().mean((1,2,3))
+                for p,t in zip(preds, real)
+            ]).mean(0)
+            return loss.mean()
+        
+        # Defaults to L1 loss
+        else:
+            return F.l1_loss(preds_edt, real_edt)
+        
+
 class GDL(nn.Module):
     '''
-    Gradient different loss function
+    Gradience difference loss function
     Target: reduce motion blur 
     '''
 

@@ -10,9 +10,27 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 import os
 import csv
+from eval.chamfer_dist import batch_edt
 
 
-# import utils.calculator as cal
+
+
+def get_edt(imgs, exp_factor=540/25, binarize_at=0.5, bit_reverse=True, device='cuda:0'):
+    # Transfer tensors to other device to avoid issues with memory leak
+    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
+    imgs = imgs.to(other_device)
+
+    # Binarize images
+    imgs = (imgs>binarize_at).float()
+
+    if bit_reverse:
+        imgs = 1-imgs
+
+    # Calculate NEDT
+    edt = batch_edt(imgs)
+    nedt = 1 - (-edt*exp_factor / max(edt.shape[-2:])).exp()
+    
+    return nedt
 
 
 def crop(image, new_shape):
@@ -95,6 +113,10 @@ def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='ex
         
 
 def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='testing', size=(20, 20)):
+    # Creates experiment directory if it doesn't exist'
+    experiment_dir = experiment_dir + train_test
+    if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
+
     # Plots all metrics in metrics dictionary in a plt figure
     # Create a new figure with multiple subplots arranged in a square grid
     num_metrics = len(metrics)
@@ -112,7 +134,7 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='test
         axes[i].set_xlabel('training step')
     
     # Save the plot to a file
-    plt.savefig(f'{experiment_dir+train_test}/metrics_{epoch}.png')
+    plt.savefig(f'{experiment_dir}/metrics_{epoch}.png')
     
     # Show the plot
     plt.show()

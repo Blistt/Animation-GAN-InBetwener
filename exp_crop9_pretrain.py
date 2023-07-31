@@ -12,7 +12,9 @@ import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
 from train import train
+from pre_train import pre_train
 from loss import GDL, MS_SSIM, LaplacianPyramidLoss
+import time
 
 
 if __name__ == '__main__':
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 2                      # Number of extra discriminator steps if outperformed by generator
+    disc_extra = 3                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
@@ -60,13 +62,13 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)
     # MY dataset (optional)
@@ -91,14 +93,23 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 10
+    display_step = 1
     plot_step = 1
-    experiment_dir = 'exp9_crop_all/'
+    experiment_dir = 'temp/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
+
+    '''
+    Pre-training parameters
+    '''
+    pretrain = 'load'   # 'pretrain', 'load' or 'none'
+
+    # Pre-trains model if specified
+    if pretrain=='pretrain':
+        gen = pre_train(gen, gen_opt, train_dataset, r1, r1_lambda, r2=r2, lambr2=r2_lambda, r3=r3, lambr3=r3_lambda,
+                         n_epochs=5, batch_size=batch_size, device=device)
     # Loads pre-trained model if specified
-    pretrained = True
-    if pretrained:
+    if pretrain=='load':
         loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
         gen.load_state_dict(loaded_state)
     else:
@@ -106,7 +117,6 @@ if __name__ == '__main__':
         disc = disc.apply(weights_init)
 
     # Records time it takes to train the model
-    import time
     start_time = time.time()
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
@@ -115,6 +125,6 @@ if __name__ == '__main__':
           my_dataset=my_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
           experiment_dir=experiment_dir)
     
-    # Saves the time it took in a text file in experiment directory
+    # Saves the time the experiment took in a text file in experiment directory
     with open(experiment_dir + 'time.txt', 'w') as f:
         f.write(f'Training took {(time.time() - start_time)/60} minutes')
