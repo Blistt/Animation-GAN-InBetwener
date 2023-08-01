@@ -27,8 +27,8 @@ if __name__ == '__main__':
     r2 = nn.L1Loss()                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
-    adv_lambda = 0.5                 # Adversarial loss weight
-    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
+    adv_lambda = 0.000005                 # Adversarial loss weight
+    r1_lambda = 6.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     display_step = 6                   # How often to display/visualize the images
     batch_size = 8                     # Batch size
     lr = 0.0002                         # Learning rate
-    b1 = 0.5                            # Adam: decay of first order momentum of gradient
+    b1 = 0.9                            # Adam: decay of first order momentum of gradient
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
@@ -102,12 +102,13 @@ if __name__ == '__main__':
     '''
     Pre-training parameters
     '''
-    pretrain = 'load'   # 'pretrain', 'load' or 'none'
+    pretrain = 'pretrain'   # 'pretrain', 'load' or 'none'
+    pre_train_epochs = 100
 
     # Pre-trains model if specified
     if pretrain=='pretrain':
         gen = pre_train(gen, gen_opt, train_dataset, r1, r1_lambda, r2=r2, lambr2=r2_lambda, r3=r3, lambr3=r3_lambda,
-                         n_epochs=5, batch_size=batch_size, device=device)
+                         n_epochs=pre_train_epochs, batch_size=batch_size, device=device)
     # Loads pre-trained model if specified
     if pretrain=='load':
         loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
