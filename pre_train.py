@@ -4,6 +4,7 @@ from loss import pre_train_loss
 from torchvision.utils import save_image
 from utils.utils import create_gif
 import os
+from torch import nn
 
 
 def pre_train(model, model_opt, tra_dataset, r1, lambr1, r2=None, r3=None, lambr2=None, lambr3=None,
@@ -31,6 +32,7 @@ def pre_train(model, model_opt, tra_dataset, r1, lambr1, r2=None, r3=None, lambr
 
             model_opt.zero_grad()
             pred = model(input1, input2)
+            # model_loss = nn.BCELoss()(pred, real).to(device) * 1.0
             model_loss = pre_train_loss(pred, real, r1, lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, device=device)
             model_loss.backward()
             model_opt.step()
@@ -40,5 +42,6 @@ def pre_train(model, model_opt, tra_dataset, r1, lambr1, r2=None, r3=None, lambr
             save_image(pred, experiment_dir + str(step_num) + '_preds.png', nrow=4, normalize=True)
             create_gif(input1, real, input2, pred, experiment_dir, step_num) 
             step_num += 1
+        print(f'Epoch {epoch} loss: {model_loss.item()}')
 
     return model

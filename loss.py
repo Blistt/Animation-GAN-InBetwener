@@ -13,29 +13,29 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None
                  lambr1=None, lambr3=None, lambr2=None, device='cuda:0'):
     disc_pred_hat = disc(preds)
     gen_adv_loss = adv_l(disc_pred_hat, torch.ones_like(disc_pred_hat))
-    gen_recon1 = r1(real, preds)
+    gen_recon1 = r1(preds, real)
     gen_loss = (gen_adv_loss * adv_lambda) + (gen_recon1 * lambr1)
 
     # Adds optional additional losses
     if r2 is not None:
-        gen_recon2 = r2(real, preds)
+        gen_recon2 = r2(preds, real)
         gen_loss += gen_recon2 * lambr2
     if r3 is not None:
-        gen_recon3 = r3(real, preds)
+        gen_recon3 = r3(preds, real)
         gen_loss += gen_recon3 * lambr3
     return gen_loss
 
 
 def pre_train_loss(preds, real, r1, lambr1=1, r2=None, r3=None, lambr2=None, lambr3=None, device='cuda:0'):
-    gen_recon1 = r1(real, preds)
+    gen_recon1 = r1(preds, real)
     gen_loss = gen_recon1 * lambr1
 
     # Adds optional additional losses
     if r2 is not None:
-        gen_recon2 = r2(real, preds)
+        gen_recon2 = r2(preds, real)
         gen_loss += gen_recon2 * lambr2
     if r3 is not None:
-        gen_recon3 = r3(real, preds)
+        gen_recon3 = r3(preds, real)
         gen_loss += gen_recon3 * lambr3
     return gen_loss
 

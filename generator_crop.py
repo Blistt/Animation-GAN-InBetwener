@@ -116,7 +116,7 @@ class UNetCrop(nn.Module):
         self.expand3 = ExpandingBlock(hidden_channels * 4)
         self.expand4 = ExpandingBlock(hidden_channels * 2)
         self.downfeature = FeatureMapBlock(hidden_channels, output_channels)
-        self.activation = nn.Tanh()
+        self.activation = nn.Sigmoid()
 
     def forward(self, i1, i2):
         x0 = self.upfeature(i1, i2)

@@ -23,17 +23,18 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    r2 = nn.L1Loss()                   # Reconstruction loss 2
+    # r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
+    r1 = nn.BCELoss().to(device)
+    r2 = None                 # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
-    adv_lambda = 0.000005                 # Adversarial loss weight
-    r1_lambda = 6.0                  # Reconstruction loss 1 weight        
+    adv_lambda = 0.5                 # Adversarial loss weight
+    r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 6                      # Number of epochs
+    n_epochs = 100                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     '''
     Pre-training parameters
     '''
-    pretrain = 'pretrain'   # 'pretrain', 'load' or 'none'
+    pretrain = 'none'   # 'pretrain', 'load' or 'none'
     pre_train_epochs = 100
 
     # Pre-trains model if specified
