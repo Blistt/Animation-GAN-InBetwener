@@ -23,17 +23,17 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    r2 = EDT_Loss(device, sub_loss='l1')                   # Reconstruction loss 2
+    r1 = nn.L1Loss().to(device)        # Reconstruction loss 1
+    r2 = EDT_Loss(device, sub_loss='laplacian')                   # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
-    adv_lambda = 0.5                 # Adversarial loss weight
+    adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 6                      # Number of epochs
+    n_epochs = 100                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -44,8 +44,8 @@ if __name__ == '__main__':
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 3                      # Number of extra discriminator steps if outperformed by generator
+    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
@@ -102,19 +102,20 @@ if __name__ == '__main__':
     '''
     Pre-training parameters
     '''
-    pretrain = 'load'   # 'pretrain', 'load' or 'none'
+    pretrain = 'pretrain'   # 'pretrain', 'load' or 'none'
+    pre_train_epochs = 300
 
-    # Pre-trains model if specified
-    if pretrain=='pretrain':
-        gen = pre_train(gen, gen_opt, train_dataset, r1, r1_lambda, r2=r2, lambr2=r2_lambda, r3=r3, lambr3=r3_lambda,
-                         n_epochs=5, batch_size=batch_size, device=device)
-    # Loads pre-trained model if specified
-    if pretrain=='load':
-        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
-        gen.load_state_dict(loaded_state)
-    else:
-        gen = gen.apply(weights_init)
-        disc = disc.apply(weights_init)
+    # # Pre-trains model if specified
+    # if pretrain=='pretrain':
+    #     gen = pre_train(gen, gen_opt, train_dataset, r1, r1_lambda, r2=r2, lambr2=r2_lambda, r3=r3, lambr3=r3_lambda,
+    #                      n_epochs=pre_train_epochs, batch_size=batch_size, device=device)
+    # # Loads pre-trained model if specified
+    # if pretrain=='load':
+    #     loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
+    #     gen.load_state_dict(loaded_state)
+    # else:
+    #     gen = gen.apply(weights_init)
+    #     disc = disc.apply(weights_init)
 
     # Records time it takes to train the model
     start_time = time.time()

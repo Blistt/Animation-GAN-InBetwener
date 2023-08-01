@@ -66,8 +66,8 @@ class EDT_Loss(nn.Module):
     def forward(self, preds, real):
         with torch.no_grad():
             # Gets the Euclidean Distance Transform of the real and predicted frames
-            real_edt = get_edt(real, self.device).to(self.device)
-            preds_edt = get_edt(preds, self.device).to(self.device)
+            real_edt = get_edt(real, device=self.device).to(self.device)
+            preds_edt = get_edt(preds, device=self.device).to(self.device)
 
         # Calculates laplacian pyramid loss of edt transformed images if specified
         if self.sub_loss == 'laplacian':
@@ -75,7 +75,7 @@ class EDT_Loss(nn.Module):
             real_edt = kornia.geometry.transform.build_pyramid(real, 3)
             loss = torch.stack([
                 (p-t).abs().mean((1,2,3))
-                for p,t in zip(preds, real)
+                for p,t in zip(preds_edt, real_edt)
             ]).mean(0)
             return loss.mean()
         
