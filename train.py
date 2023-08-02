@@ -122,8 +122,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Visualizes predictions'''
             if step_num % train_display_step == 0 and epoch % plot_step == 0:            
                 # Saves torch image with the batch of predicted and real images
-                save_image(real, train_dir + str(step_num) + '_real.png', nrow=4, normalize=True)
-                save_image(preds, train_dir + str(step_num) + '_preds.png', nrow=4, normalize=True)
+                save_image(real, train_dir + str(step_num) + '_real.png', nrow=4, normalize=False)
+                save_image(preds, train_dir + str(step_num) + '_preds.png', nrow=4, normalize=False)
                 create_gif(input1, real, input2, preds, experiment_dir+'train/', step_num) # Saves gifs of the predicted and ground truth triplets
             
             step_num += 1

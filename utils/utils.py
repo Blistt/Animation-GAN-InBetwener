@@ -51,13 +51,16 @@ def crop(image, new_shape):
       cropped_image = image[:, padding_y+odd_y:image.shape[-2]-padding_y, padding_x+odd_x:image.shape[-1]-padding_x]
     return cropped_image
 
-
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
-        nn.init.normal_(m.weight, 0.0, 0.02)
-    if isinstance(m, nn.BatchNorm2d):
-        nn.init.normal_(m.weight, 0.0, 0.02)
-        nn.init.constant_(m.bias, 0)
+        nn.init.xavier_uniform_(m.weight)
+
+# def weights_init(m):
+#     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+#         nn.init.normal_(m.weight, 0.0, 0.02)
+#     if isinstance(m, nn.BatchNorm2d):
+#         nn.init.normal_(m.weight, 0.0, 0.02)
+#         nn.init.constant_(m.bias, 0)
 
 
 def show_tensor_images(image_tensor, num_images=16):
