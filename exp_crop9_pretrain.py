@@ -34,7 +34,7 @@ if __name__ == '__main__':
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 100                      # Number of epochs
+    n_epochs = 1000                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     '''
     display_step = 1
     plot_step = 1
-    experiment_dir = 'temp/'
+    experiment_dir = 'exp1_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
