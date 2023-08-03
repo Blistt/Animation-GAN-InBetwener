@@ -1,0 +1,15 @@
+Epoch 0: Training Gen loss: 1.4129374027252197 Training Disc loss: 0.863926887512207 Testing Gen loss: 0.9058653116226196 Testing Disc loss: 0.6988648772239685
+Epoch 20: Training Gen loss: 3.1853888034820557 Training Disc loss: 0.00704974913969636 Testing Gen loss: 2.026916265487671 Testing Disc loss: 1.1412733793258667
+Epoch 40: Training Gen loss: 3.834329128265381 Training Disc loss: 0.0016264681471511722 Testing Gen loss: 2.163665533065796 Testing Disc loss: 1.584271788597107
+Epoch 60: Training Gen loss: 4.687617301940918 Training Disc loss: 0.0005991521175019443 Testing Gen loss: 2.6716272830963135 Testing Disc loss: 1.2112431526184082
+Epoch 80: Training Gen loss: 5.025820732116699 Training Disc loss: 0.0013560643419623375 Testing Gen loss: 3.111018180847168 Testing Disc loss: 1.1548137664794922
+Epoch 100: Training Gen loss: 4.287522315979004 Training Disc loss: 0.00037173577584326267 Testing Gen loss: 2.816295623779297 Testing Disc loss: 1.827354907989502
+Epoch 120: Training Gen loss: 4.462677955627441 Training Disc loss: 0.00031146733090281487 Testing Gen loss: 2.8053009510040283 Testing Disc loss: 1.1419203281402588
+Epoch 140: Training Gen loss: 4.564671516418457 Training Disc loss: 0.00017463373660575598 Testing Gen loss: 2.807349920272827 Testing Disc loss: 1.5753767490386963
+Epoch 160: Training Gen loss: 4.8846755027771 Training Disc loss: 0.00037728637107647955 Testing Gen loss: 2.8373098373413086 Testing Disc loss: 0.9018280506134033
+Epoch 180: Training Gen loss: 5.018002033233643 Training Disc loss: 0.0010161990066990256 Testing Gen loss: 2.9961140155792236 Testing Disc loss: 1.3259778022766113
+Epoch 200: Training Gen loss: 5.340256690979004 Training Disc loss: 0.00025617427309043705 Testing Gen loss: 3.0446085929870605 Testing Disc loss: 2.3595800399780273
+Epoch 220: Training Gen loss: 5.046477317810059 Training Disc loss: 5.78681101615075e-05 Testing Gen loss: 3.2391722202301025 Testing Disc loss: 1.2871993780136108
+Epoch 240: Training Gen loss: 5.07727575302124 Training Disc loss: 5.9619829698931426e-05 Testing Gen loss: 3.0697786808013916 Testing Disc loss: 1.773164987564087
+Epoch 260: Training Gen loss: 5.5174407958984375 Training Disc loss: 0.0001618351525394246 Testing Gen loss: 3.2949705123901367 Testing Disc loss: 2.563669443130493
+Epoch 280: Training Gen loss: 5.60017728805542 Training Disc loss: 1.2688095921475906e-05 Testing Gen loss: 3.3596174716949463 Testing Disc loss: 2.0932974815368652

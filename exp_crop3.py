@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    # r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    r1 = nn.BCELoss().to(device)
+    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
+    # r1 = nn.BCELoss().to(device)
     r2 = None                 # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 1000                      # Number of epochs
+    n_epochs = 300                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 3                      # Number of extra discriminator steps if outperformed by generator
+    disc_extra = 2                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
@@ -95,8 +95,8 @@ if __name__ == '__main__':
     Visualization parameters
     '''
     display_step = 1
-    plot_step = 1
-    experiment_dir = 'exp1_mini/'
+    plot_step = 20
+    experiment_dir = 'exp_crop3_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
