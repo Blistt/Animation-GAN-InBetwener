@@ -77,7 +77,9 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
             if step_num != 0:
                 # Calculates number of additional training steps for discriminator (limits it to 2 max)
-                n_disc_steps = min(disc_extra, int((disc_loss.item() / (gen_loss.item())) - 1))
+                gen_imprv = gen_loss.item() / tr_gen_losses[-1]
+                disc_imprv = disc_loss.item() / tr_disc_losses[-1]
+                n_disc_steps = min(disc_extra, int((gen_imprv / (disc_imprv.item())) - 1))
                 if n_disc_steps > 0:
                     print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
                     for i in range(n_disc_steps):
