@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    # r1 = nn.BCELoss().to(device)
+    # r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
+    r1 = nn.BCELoss().to(device)
     r2 = None                 # Reconstruction loss 2
     # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
     '''Training loop parameters'''
-    n_epochs = 3                      # Number of epochs
+    n_epochs = 300                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -45,17 +45,16 @@ if __name__ == '__main__':
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
+    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
 
 
     '''Model parameters'''
-    gen = UNetCrop(input_dim, label_dim).to(device)
+    gen = GeneratorLight(label_dim, hidden_channels).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
-    disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
+    disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
     save_checkpoints = False
-
 
     '''Dataset parameters'''
     transform=transforms.Compose([transforms.ToTensor(),
@@ -63,19 +62,16 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
-    train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
-                               crop_shape=target_size)
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
-    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
-                             crop_shape=target_size)
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
-    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
-                           crop_shape=target_size)
+    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     
 
     '''
@@ -94,9 +90,9 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 10
-    plot_step = 1
-    experiment_dir = 'exp_crop3/'
+    display_step = 1
+    plot_step = 20
+    experiment_dir = 'exp_light1_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 

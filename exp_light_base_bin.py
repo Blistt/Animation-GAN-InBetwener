@@ -21,11 +21,11 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
+    r1 = nn.L1Loss.to(device)             # Reconstruction loss 1
     r2 = GDL(device)                   # Reconstruction loss 2
     r3 = MS_SSIM(device)            # Reconstruction loss 3
-    # r2=None
-    # r3=None
+    r2=None
+    r3=None
     adv_lambda = 0.05                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     '''Training loop parameters'''
-    n_epochs = 10                      # Number of epochs
+    n_epochs = 300                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp4_light_all_noextra/'
+    experiment_dir = 'exp_light_basebin_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
     # Loads pre-trained model if specified

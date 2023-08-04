@@ -48,7 +48,7 @@ class GeneratorLight(nn.Module):
             nn.BatchNorm2d(hidden_channels),
             nn.LeakyReLU(0.02, inplace=True),
             nn.ConvTranspose2d(hidden_channels, input_channels, kernel_size=3, stride=1, padding=1, bias=False),  # size
-            nn.Tanh()
+            nn.Sigmoid()
             )
     
     def forward(self, tensor0, tensor2):
