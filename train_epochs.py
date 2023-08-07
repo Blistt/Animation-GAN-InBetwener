@@ -1,25 +1,18 @@
 import torch
 from torch import nn
 from tqdm.auto import tqdm
-from torchvision import transforms
 from torch.utils.data import DataLoader
-from generator_crop import UNetCrop
-from generator_light import GeneratorLight
-from discriminator_crop import DiscriminatorCrop
-from discriminator_full import DiscriminatorFull
-from utils.utils import weights_init, visualize_batch_loss, create_gif, visualize_batch_eval
+from utils.utils import visualize_batch_loss, create_gif, visualize_batch_eval
 from dataset_class import MyDataset
 from loss import get_gen_loss
 from test import test
 import os
 from torchvision.utils import save_image
-import torchmetrics
-import eval.my_metrics as my_metrics
-import eval.chamfer_dist as chamfer_dist
 from collections import defaultdict
 import numpy as np
 from utils.utils import get_edt
 
+    
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
@@ -36,10 +29,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     os.makedirs(train_dir, exist_ok=True)
 
     
-    # stores generator losses
+    # Stores generator losses
     tr_gen_losses = []  
     tr_disc_losses = []
-    # stores discriminator losses
+    # Stores discriminator losses
     test_gen_losses = []
     test_disc_losses = []
     results = defaultdict(list)     # Stores metrics
@@ -58,67 +51,37 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         for input1, real, input2 in tqdm(dataloader):
             input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
-            '''Train discriminator'''
-            disc_opt.zero_grad()
-            # Discriminator loss for predicted images
-            with torch.no_grad():
+            # Train generator in even epochs
+            if epoch % 2 == 0:
+                '''Train generator'''
+                gen_opt.zero_grad()
                 preds = gen(input1, input2)
-            disc_pred_hat = disc(preds.detach())
-            disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
-            # Discriminator loss for real images
-            disc_real_hat = disc(real)
-            disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
-            # Total discriminator loss
-            disc_loss = (disc_fake_loss + disc_real_loss) / 2
-            disc_loss.backward(retain_graph=True)
-            disc_opt.step()
-
-
-            '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
-            if step_num != 0:
-                # Calculates number of additional training steps for discriminator (limits it to 2 max)
-                n_disc_steps = min(disc_extra, int((disc_loss.item() / (gen_loss.item())) - 1))
-                if n_disc_steps > 0:
-                    print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
-                    for i in range(n_disc_steps):
-                        # Train discriminator again
-                        disc_opt.zero_grad()
-                        # Discriminator loss for predicted images
-                        disc_pred_hat = disc(preds.detach())
-                        disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
-                        # Discriminator loss for real images
-                        disc_real_hat = disc(real)
-                        disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
-                        # Total discriminator loss
-                        disc_loss = (disc_fake_loss + disc_real_loss) / 2
-                        disc_loss.backward(retain_graph=True)
-                        disc_opt.step()
-
-            '''Train generator'''
-            gen_opt.zero_grad()
-            preds = gen(input1, input2)
-
-            gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
-                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
-            gen_loss.backward()
-            gen_opt.step()
+                gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
+                                        lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
+                gen_loss.backward()
+                gen_opt.step()
+                        
+            # Train discriminator in odd epochs
+            if epoch % 2 == 1:
+                '''Train discriminator'''
+                disc_opt.zero_grad()
+                # Discriminator loss for predicted images
+                disc_pred_hat = disc(preds.detach())
+                disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
+                # Discriminator loss for real images
+                disc_real_hat = disc(real)
+                disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
+                # Total discriminator loss
+                disc_loss = (disc_fake_loss + disc_real_loss) / 2
+                disc_loss.backward(retain_graph=True)
+                disc_opt.step()
+            
             
 
-            '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            n_gen_steps = min(gen_extra, int((gen_loss.item() / (disc_loss.item())) - 1))   # Calculates number of additional training 
-                                                                                    # steps for generator (limits it to 3 max)
-            if n_gen_steps > 0:  
-                print('Number of additional training steps for generator: ' + str(n_gen_steps))
-                for i in range(n_gen_steps):
-                    # Train generator again
-                    gen_opt.zero_grad()
-                    preds = gen(input1, input2)
-                    gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
-                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
-                    gen_loss.backward()
-                    gen_opt.step()
+            '''Saves losses'''
             tr_gen_losses.append(gen_loss.item())
             tr_disc_losses.append(disc_loss.item())
+
 
             '''Visualizes predictions'''
             if step_num % train_display_step == 0 and epoch % plot_step == 0:            
@@ -189,11 +152,11 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             visualize_batch_eval(epoch_results, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
-            print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-            f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}")
+            loss_statement = f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
+            f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}"
+            print(loss_statement)
         
             # Keeps a written log of the training and testing losses
             with open(experiment_dir + 'training_log.txt', 'a') as f:
-                print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-                    f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}", file=f)
+                print(loss_statement, file=f)
         

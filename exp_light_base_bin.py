@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     '''Loss function parameters'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = nn.L1Loss.to(device)             # Reconstruction loss 1
+    r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
     r2 = GDL(device)                   # Reconstruction loss 2
     r3 = MS_SSIM(device)            # Reconstruction loss 3
     r2=None
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     '''Training loop parameters'''
-    n_epochs = 300                      # Number of epochs
+    n_epochs = 3                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -62,12 +62,12 @@ if __name__ == '__main__':
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    # train_data_dir = 'mini_datasets/mini_train_triplets/'
-    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_data_dir = 'mini_datasets/mini_train_triplets/'
+    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # Testing dataset (optional)
-    # test_data_dir = 'mini_datasets/mini_test_triplets/'
-    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_data_dir = 'mini_datasets/mini_test_triplets/'
+    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'

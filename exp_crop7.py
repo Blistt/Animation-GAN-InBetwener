@@ -94,8 +94,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 1
-    plot_step = 20
+    display_step = 10
+    plot_step = 1
     experiment_dir = 'exp_crop7/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
