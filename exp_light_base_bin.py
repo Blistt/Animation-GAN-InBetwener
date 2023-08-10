@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     '''Training loop parameters'''
-    n_epochs = 3                      # Number of epochs
+    n_epochs = 300                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -89,8 +89,8 @@ if __name__ == '__main__':
     '''
     Visualization parameters
     '''
-    display_step = 10
-    plot_step = 1
+    display_step = 1
+    plot_step = 20
     experiment_dir = 'exp_light_basebin_mini/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 

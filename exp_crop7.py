@@ -45,7 +45,7 @@ if __name__ == '__main__':
     b2 = 0.999                          # Adam: decay of second order momentum of gradient
     img_size = (512, 512)                      # Frames' image size
     target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 3                       # Number of extra generator steps if outperformed by discriminator    
+    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
 
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     '''
     display_step = 10
     plot_step = 1
-    experiment_dir = 'exp_crop7/'
+    experiment_dir = 'exp_crop7.5/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
