@@ -60,6 +60,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                                         lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
                 gen_loss.backward()
                 gen_opt.step()
+
+                tr_gen_losses.append(gen_loss.item())       # Saves gen loss value
+
+        
                         
             # Train discriminator in odd epochs
             if epoch % 2 == 1:
@@ -75,12 +79,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 disc_loss = (disc_fake_loss + disc_real_loss) / 2
                 disc_loss.backward(retain_graph=True)
                 disc_opt.step()
-            
-            
 
-            '''Saves losses'''
-            tr_gen_losses.append(gen_loss.item())
-            tr_disc_losses.append(disc_loss.item())
+                tr_disc_losses.append(disc_loss.item())     # Saves disc loss value
 
 
             '''Visualizes predictions'''
@@ -125,7 +125,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=my_display_step, plot_step=plot_step, 
                                    r1=r1, lambr1=lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
                                     device=device, experiment_dir=experiment_dir+'cool_test/')
-            
+        print('len epochs', len(epoch_results['ssim']))    
        
         '''
         ################## PLOTS AND CHECKPOINTS ##################
@@ -143,20 +143,22 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint' + str(epoch) + '.pth')
                 torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint' + str(epoch) + '.pth')
 
-            # Plots losses
-            visualize_batch_loss(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
-                            train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
+            # Plots  and prints losses
+            if epoch > 0:
+                visualize_batch_loss(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
+                                train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
+                            # Prints losses
+                loss_statement = f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
+                f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}"
+                print(loss_statement)
+                
+                # Keeps a written log of the training and testing losses
+                with open(experiment_dir + 'training_log.txt', 'a') as f:
+                    print(loss_statement, file=f)
+        
 
             # Plots metrics
             visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='metrics_batch')
             visualize_batch_eval(epoch_results, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
-            # Prints losses
-            loss_statement = f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
-            f"Testing Gen loss: {test_gen_losses[-1]} Testing Disc loss: {test_disc_losses[-1]}"
-            print(loss_statement)
-        
-            # Keeps a written log of the training and testing losses
-            with open(experiment_dir + 'training_log.txt', 'a') as f:
-                print(loss_statement, file=f)
         
