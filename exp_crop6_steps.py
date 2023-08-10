@@ -11,9 +11,8 @@ import os
 import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
-from train import train
 from pre_train import pre_train
-from loss import GDL, MS_SSIM, LaplacianPyramidLoss
+from loss import LaplacianPyramidLoss, EDT_Loss
 import time
 
 
@@ -21,20 +20,19 @@ if __name__ == '__main__':
     
     device = 'cuda:1'
 
-    '''Loss function parameters'''
+    ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    # r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    r1 = nn.BCELoss().to(device)
-    r2 = None                 # Reconstruction loss 2
-    # r3 = MS_SSIM(device)            # Reconstruction loss 3
+    r1 = EDT_Loss(device=device, sub_loss='laplacian').to(device)        # Reconstruction loss 1
+    r2 = nn.L1Loss().to(device)                 # Reconstruction loss 2
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
-    '''Training loop parameters'''
-    n_epochs = 300                      # Number of epochs
+
+    '''-------------------------------------- Training loop parameters --------------------------------------'''
+    n_epochs = 4                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -47,36 +45,39 @@ if __name__ == '__main__':
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
+    training_mode = 'steps'            # 'epochs' or 'steps'
 
 
-    '''Model parameters'''
-    gen = GeneratorLight(label_dim, hidden_channels).to(device)
+    '''-------------------------------------- Model --------------------------------------'''
+    gen = UNetCrop(input_dim, label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
-    disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
+    disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
     disc_opt = torch.optim.Adam(disc.parameters(), lr=lr, betas=(b1, b2))
     save_checkpoints = False
 
-    '''Dataset parameters'''
+
+    '''-------------------------------------- Dataset parameters --------------------------------------'''
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
     binary_threshold = 0.75
     # Training dataset
-    train_data_dir = 'mini_datasets/mini_train_triplets/'
-    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
-    train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
+    # train_data_dir = 'mini_datasets/mini_train_triplets/'
+    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                               crop_shape=target_size)
     # Testing dataset (optional)
-    test_data_dir = 'mini_datasets/mini_test_triplets/'
-    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
-    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
+    # test_data_dir = 'mini_datasets/mini_test_triplets/'
+    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                             crop_shape=target_size)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
-    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
+    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+                           crop_shape=target_size)
     
 
-    '''
-    Evaluation parameters
-    '''
+    '''-------------------------------------- Evaluation Metrics --------------------------------------'''
     other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
@@ -87,18 +88,15 @@ if __name__ == '__main__':
 
 
 
-    '''
-    Visualization parameters
-    '''
-    display_step = 1
-    plot_step = 20
-    experiment_dir = 'exp_light1_mini/'
+    '''-------------------------------------- Visualization parameters --------------------------------------'''
+    display_step = 10             # How many times per epoch to display/visualize the images
+    plot_step = 1                 # How many times per epoch to plot the loss
+    experiment_dir = os.path.splitext(os.path.basename(__file__))[0] + '/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
-    '''
-    Pre-training parameters
-    '''
+
+    '''-------------------------------------- Model Loading parameters --------------------------------------'''
     pretrain = 'none'   # 'pretrain', 'load' or 'none'
     pre_train_epochs = 100
 
@@ -113,6 +111,13 @@ if __name__ == '__main__':
     else:
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
+
+
+    '''-------------------------------------- Execute Experiment --------------------------------------'''
+    if training_mode == 'steps':
+        from train_epochs import train
+    else:
+        from train import train
 
     # Records time it takes to train the model
     start_time = time.time()

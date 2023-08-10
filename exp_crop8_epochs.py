@@ -11,7 +11,6 @@ import os
 import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
-from train import train
 from pre_train import pre_train
 from loss import LaplacianPyramidLoss, EDT_Loss
 import time
@@ -21,35 +20,35 @@ if __name__ == '__main__':
     
     device = 'cuda:1'
 
-    '''Loss function parameters'''
+    ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = EDT_Loss(device=device, sub_loss='l1').to(device)        # Reconstruction loss 1
-    # r1 = nn.BCELoss().to(device)
-    r2 = None                 # Reconstruction loss 2
-    # r3 = MS_SSIM(device)            # Reconstruction loss 3
+    r1 = EDT_Loss(device=device, sub_loss='laplacian').to(device)        # Reconstruction loss 1
+    r2 = nn.BCELoss().to(device)                 # Reconstruction loss 2
     r3=None
-    adv_lambda = 0.5                 # Adversarial loss weight
+    adv_lambda = 0.05                # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
-    '''Training loop parameters'''
-    n_epochs = 3                      # Number of epochs
-    input_dim = 2                       # Input channels (1 for each grayscale input frame)
-    label_dim = 1                       # Output channels (1 for each grayscale output frame)
-    hidden_channels = 64                # Hidden channels of the generator and discriminator
-    display_step = 6                   # How often to display/visualize the images
-    batch_size = 8                     # Batch size
-    lr = 0.0002                         # Learning rate
-    b1 = 0.9                            # Adam: decay of first order momentum of gradient
-    b2 = 0.999                          # Adam: decay of second order momentum of gradient
-    img_size = (512, 512)                      # Frames' image size
-    target_size = (373, 373)                   # Cropped frames' image size
-    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
+
+    '''-------------------------------------- Training loop parameters --------------------------------------'''
+    n_epochs = 4                      # Number of epochs
+    input_dim = 2                     # Input channels (1 for each grayscale input frame)
+    label_dim = 1                     # Output channels (1 for each grayscale output frame)
+    hidden_channels = 64              # Hidden channels of the generator and discriminator
+    display_step = 6                  # How often to display/visualize the images
+    batch_size = 8                    # Batch size
+    lr = 0.0002                       # Learning rate
+    b1 = 0.9                          # Adam: decay of first order momentum of gradient
+    b2 = 0.999                        # Adam: decay of second order momentum of gradient
+    img_size = (512, 512)             # Frames' image size
+    target_size = (373, 373)          # Cropped frames' image size
+    gen_extra = 0                     # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 0                    # Number of extra discriminator steps if outperformed by generator
+    training_mode = 'epochs'            # 'epochs' or 'steps'
 
 
-    '''Model parameters'''
+    '''-------------------------------------- Model --------------------------------------'''
     gen = UNetCrop(input_dim, label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
     disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     save_checkpoints = False
 
 
-    '''Dataset parameters'''
+    '''-------------------------------------- Dataset parameters --------------------------------------'''
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
@@ -78,9 +77,7 @@ if __name__ == '__main__':
                            crop_shape=target_size)
     
 
-    '''
-    Evaluation parameters
-    '''
+    '''-------------------------------------- Evaluation Metrics --------------------------------------'''
     other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
@@ -90,19 +87,15 @@ if __name__ == '__main__':
     }).to(other_device).eval()
 
 
-
-    '''
-    Visualization parameters
-    '''
-    display_step = 10
-    plot_step = 1
-    experiment_dir = 'exp_crop4/'
+    '''-------------------------------------- Visualization parameters --------------------------------------'''
+    display_step = 10             # How many times per epoch to display/visualize the images
+    plot_step = 1                 # How many times per epoch to plot the loss
+    experiment_dir = os.path.splitext(os.path.basename(__file__))[0] + '/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
-    '''
-    Pre-training parameters
-    '''
+
+    '''-------------------------------------- Model Loading parameters --------------------------------------'''
     pretrain = 'none'   # 'pretrain', 'load' or 'none'
     pre_train_epochs = 100
 
@@ -117,6 +110,13 @@ if __name__ == '__main__':
     else:
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
+
+
+    '''-------------------------------------- Execute Experiment --------------------------------------'''
+    if training_mode == 'steps':
+        from train_epochs import train
+    else:
+        from train import train
 
     # Records time it takes to train the model
     start_time = time.time()

@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    r1 = EDT_Loss(device=device, sub_loss='laplacian').to(device)        # Reconstruction loss 1
+    r1 = EDT_Loss(device=device, sub_loss='l1').to(device)        # Reconstruction loss 1
     r2 = nn.BCELoss().to(device)                 # Reconstruction loss 2
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     target_size = (373, 373)          # Cropped frames' image size
     gen_extra = 0                     # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                    # Number of extra discriminator steps if outperformed by generator
-    training_mode = 'epochs'            # 'epochs' or 'steps'
+    training_mode = 'steps'            # 'epochs' or 'steps'
 
 
     '''-------------------------------------- Model --------------------------------------'''

@@ -21,20 +21,18 @@ if __name__ == '__main__':
     
     device = 'cuda:1'
 
-    '''Loss function parameters'''
+    ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
-    # r1 = LaplacianPyramidLoss(n_levels=3, colorspace=None, mode='l1')        # Reconstruction loss 1
-    r1 = nn.BCELoss().to(device)
+    r1 = nn.L1Loss().to(device)        # Reconstruction loss 1
     r2 = None                 # Reconstruction loss 2
-    # r3 = MS_SSIM(device)            # Reconstruction loss 3
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
     r2_lambda = 1.0                  # Reconstruction loss 2 weight
     r3_lambda = 6.0                  # Reconstruction loss 3 weight
 
-    '''Training loop parameters'''
-    n_epochs = 3                      # Number of epochs
+    '''-------------------------------------- Training loop parameters --------------------------------------'''
+    n_epochs = 4                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -47,9 +45,10 @@ if __name__ == '__main__':
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
+    training_mode = 'steps'            # 'epochs' or 'steps'
 
 
-    '''Model parameters'''
+    '''-------------------------------------- Model --------------------------------------'''
     gen = UNetCrop(input_dim, label_dim).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
     disc = DiscriminatorCrop(label_dim, hidden_channels).to(device)
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     save_checkpoints = False
 
 
-    '''Dataset parameters'''
+    '''-------------------------------------- Dataset parameters --------------------------------------'''
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
@@ -78,9 +77,7 @@ if __name__ == '__main__':
                            crop_shape=target_size)
     
 
-    '''
-    Evaluation parameters
-    '''
+    '''-------------------------------------- Evaluation Metrics --------------------------------------'''
     other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
@@ -91,18 +88,15 @@ if __name__ == '__main__':
 
 
 
-    '''
-    Visualization parameters
-    '''
-    display_step = 10
-    plot_step = 1
-    experiment_dir = 'exp_crop1/'
+    '''-------------------------------------- Visualization parameters --------------------------------------'''
+    display_step = 10             # How many times per epoch to display/visualize the images
+    plot_step = 1                 # How many times per epoch to plot the loss
+    experiment_dir = os.path.splitext(os.path.basename(__file__))[0] + '/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
 
-    '''
-    Pre-training parameters
-    '''
+
+    '''-------------------------------------- Model Loading parameters --------------------------------------'''
     pretrain = 'none'   # 'pretrain', 'load' or 'none'
     pre_train_epochs = 100
 
@@ -118,6 +112,8 @@ if __name__ == '__main__':
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
+
+    '''-------------------------------------- Execute Experiment --------------------------------------'''
     # Records time it takes to train the model
     start_time = time.time()
 

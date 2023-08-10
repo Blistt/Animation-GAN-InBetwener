@@ -23,7 +23,7 @@ if __name__ == '__main__':
     ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
     r1 = EDT_Loss(device=device, sub_loss='laplacian').to(device)        # Reconstruction loss 1
-    r2 = nn.BCELoss().to(device)                 # Reconstruction loss 2
+    r2 = nn.L1Loss().to(device)                 # Reconstruction loss 2
     r3=None
     adv_lambda = 0.5                 # Adversarial loss weight
     r1_lambda = 1.0                  # Reconstruction loss 1 weight        
@@ -33,18 +33,18 @@ if __name__ == '__main__':
 
     '''-------------------------------------- Training loop parameters --------------------------------------'''
     n_epochs = 4                      # Number of epochs
-    input_dim = 2                     # Input channels (1 for each grayscale input frame)
-    label_dim = 1                     # Output channels (1 for each grayscale output frame)
-    hidden_channels = 64              # Hidden channels of the generator and discriminator
-    display_step = 6                  # How often to display/visualize the images
-    batch_size = 8                    # Batch size
-    lr = 0.0002                       # Learning rate
-    b1 = 0.9                          # Adam: decay of first order momentum of gradient
-    b2 = 0.999                        # Adam: decay of second order momentum of gradient
-    img_size = (512, 512)             # Frames' image size
-    target_size = (373, 373)          # Cropped frames' image size
-    gen_extra = 0                     # Number of extra generator steps if outperformed by discriminator    
-    disc_extra = 0                    # Number of extra discriminator steps if outperformed by generator
+    input_dim = 2                       # Input channels (1 for each grayscale input frame)
+    label_dim = 1                       # Output channels (1 for each grayscale output frame)
+    hidden_channels = 64                # Hidden channels of the generator and discriminator
+    display_step = 6                   # How often to display/visualize the images
+    batch_size = 8                     # Batch size
+    lr = 0.0002                         # Learning rate
+    b1 = 0.9                            # Adam: decay of first order momentum of gradient
+    b2 = 0.999                          # Adam: decay of second order momentum of gradient
+    img_size = (512, 512)                      # Frames' image size
+    target_size = (373, 373)                   # Cropped frames' image size
+    gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
+    disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
     training_mode = 'epochs'            # 'epochs' or 'steps'
 
 
@@ -85,6 +85,7 @@ if __name__ == '__main__':
         'chamfer': chamfer_dist.ChamferDistance2dMetric(binary=0.5),
         'mse': torchmetrics.MeanSquaredError(),
     }).to(other_device).eval()
+
 
 
     '''-------------------------------------- Visualization parameters --------------------------------------'''

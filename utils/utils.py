@@ -116,6 +116,7 @@ def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='ex
         
 
 def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='testing', size=(20, 20)):
+
     # Creates experiment directory if it doesn't exist'
     experiment_dir = experiment_dir + train_test
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)

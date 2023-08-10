@@ -11,15 +11,16 @@ import os
 import torchmetrics
 import eval.my_metrics as my_metrics
 import eval.chamfer_dist as chamfer_dist
-from train import train
 from loss import GDL, MS_SSIM
+import time
+from pre_train import pre_train
 
 
 if __name__ == '__main__':
     
     device = 'cuda:1'
 
-    '''Loss function parameters'''
+    ''' -------------------------------------- Loss function parameters --------------------------------------'''
     adv_l = nn.BCEWithLogitsLoss().to(device)    # Adversarial loss
     r1 = nn.L1Loss().to(device)             # Reconstruction loss 1
     r2 = GDL(device)                   # Reconstruction loss 2
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     r3_lambda = 5.0                  # Reconstruction loss 3 weight
 
 
-    '''Training loop parameters'''
+    '''-------------------------------------- Training loop parameters --------------------------------------'''
     n_epochs = 300                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
@@ -46,9 +47,10 @@ if __name__ == '__main__':
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 0                      # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
+    training_mode = 'steps'
 
 
-    '''Model parameters'''
+    '''-------------------------------------- Model --------------------------------------'''
     gen = GeneratorLight(label_dim, hidden_channels).to(device)
     gen_opt = torch.optim.Adam(gen.parameters(), lr=lr, betas=(b1, b2))
     disc = DiscriminatorFull(label_dim, hidden_channels).to(device)
@@ -56,27 +58,25 @@ if __name__ == '__main__':
     save_checkpoints = False
 
 
-    '''Dataset parameters'''
+    '''-------------------------------------- Dataset parameters --------------------------------------'''
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
-    binary_threshold = 0.0
+    binary_threshold = 0.75
     # Training dataset
-    train_data_dir = 'mini_datasets/mini_train_triplets/'
-    # train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
+    # train_data_dir = 'mini_datasets/mini_train_triplets/'
+    train_data_dir = '/data/farriaga/atd_12k/Line_Art/train_10k/'
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
-    # Testing dataset (optional)
-    test_data_dir = 'mini_datasets/mini_test_triplets/'
-    # test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
+    # # Testing dataset (optional)
+    # test_data_dir = 'mini_datasets/mini_test_triplets/'
+    test_data_dir = '/data/farriaga/atd_12k/Line_Art/test_2k_original/'
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
     # MY dataset (optional)
     my_data_dir = 'mini_datasets/mini_real_test_triplets/'
     my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold)
 
 
-    '''
-    Evaluation parameters
-    '''
+    '''-------------------------------------- Evaluation Metrics --------------------------------------'''
     other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
@@ -86,34 +86,47 @@ if __name__ == '__main__':
     }).to(other_device).eval()
 
 
-    '''
-    Visualization parameters
-    '''
-    display_step = 1
-    plot_step = 20
-    experiment_dir = 'exp_light_base_mini/'
+    '''-------------------------------------- Visualization parameters --------------------------------------'''
+    display_step = 10             # How many times per epoch to display/visualize the images
+    plot_step = 1                 # How many times per epoch to plot the loss
+    experiment_dir = os.path.splitext(os.path.basename(__file__))[0] + '/'
     if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
 
+
+
+    '''-------------------------------------- Model Loading parameters --------------------------------------'''
+    pretrain = 'none'   # 'pretrain', 'load' or 'none'
+    pre_train_epochs = 100
+
+    # Pre-trains model if specified
+    if pretrain=='pretrain':
+        gen = pre_train(gen, gen_opt, train_dataset, r1, r1_lambda, r2=r2, lambr2=r2_lambda, r3=r3, lambr3=r3_lambda,
+                         n_epochs=pre_train_epochs, batch_size=batch_size, device=device)
     # Loads pre-trained model if specified
-    pretrained = False
-    if pretrained:
+    if pretrain=='load':
         loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
         gen.load_state_dict(loaded_state)
     else:
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
 
+
+    '''-------------------------------------- Execute Experiment --------------------------------------'''
+    if training_mode == 'steps':
+        from train_epochs import train
+    else:
+        from train import train
+
     # Records time it takes to train the model
-    import time
     start_time = time.time()
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, 
-          disc_extra=disc_extra, gen_extra=gen_extra, test_dataset=test_dataset,
-          my_dataset=my_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
+          my_dataset=my_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
+          experiment_dir=experiment_dir)
     
-    # Saves the time it took in a text file in experiment directory
+    # Saves the time the experiment took in a text file in experiment directory
     with open(experiment_dir + 'time.txt', 'w') as f:
         f.write(f'Training took {(time.time() - start_time)/60} minutes')
 

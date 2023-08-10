@@ -42,8 +42,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     # stores discriminator losses
     test_gen_losses = []
     test_disc_losses = []
-    results = defaultdict(list)     # Stores metrics
-    epoch_results = defaultdict(list)     # Stores metrics for an epoch
+    results_batch = defaultdict(list)     # Stores metrics
+    results_epoch = defaultdict(list)     # Stores metrics for an epoch
     dataloader = DataLoader(tra_dataset, batch_size=batch_size, shuffle=True)
     train_display_step = len(dataloader)//display_step
 
@@ -139,16 +139,18 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             '''Evaluate the model on the test dataset'''
             with torch.no_grad():
-                test_gen_loss, test_disc_loss, results = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, results=results,
-                                                                    display_step=display_step, plot_step=plot_step, r1=r1, lambr1=lambr1, 
-                                                                    r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
-                                                                    metrics=metrics, device=device, experiment_dir=experiment_dir+'test/')
+                test_gen_loss, test_disc_loss, results_e, results_batch = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, 
+                                                                           results_batch=results_batch, display_step=display_step, 
+                                                                           plot_step=plot_step, r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
+                                                                           lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                                                                           metrics=metrics, device=device, 
+                                                                           experiment_dir=experiment_dir+'test/')
             # Aggregates test losses for the whole epoch
             test_gen_losses += test_gen_loss
             test_disc_losses += test_disc_loss
             # Calculates epoch's metrics
             for metric in metrics:
-                epoch_results[metric].append(np.mean(results[metric]))
+                results_epoch[metric].append(np.mean(results_e[metric]))
             
         
         '''Performs testing in MY dataset if specified'''
@@ -185,8 +187,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
 
             # Plots metrics
-            visualize_batch_eval(results, epoch, experiment_dir=experiment_dir, train_test='metrics_batch')
-            visualize_batch_eval(epoch_results, epoch, experiment_dir=experiment_dir, train_test='metrics')
+            visualize_batch_eval(results_batch, epoch, experiment_dir=experiment_dir, train_test='metrics_batch')
+            visualize_batch_eval(results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "
