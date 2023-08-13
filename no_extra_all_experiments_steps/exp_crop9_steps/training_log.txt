@@ -1,0 +1,8 @@
+Epoch 0: Training Gen loss: 0.7620177268981934 Training Disc loss: 0.6417429447174072 Testing Gen loss: 0.706434965133667 Testing Disc loss: 0.683854341506958
+Epoch 1: Training Gen loss: 0.6391686201095581 Training Disc loss: 0.6938377022743225 Testing Gen loss: 0.732016921043396 Testing Disc loss: 0.6981484293937683
+Epoch 2: Training Gen loss: 0.7027029395103455 Training Disc loss: 0.794898509979248 Testing Gen loss: 0.6221252679824829 Testing Disc loss: 0.6827443838119507
+Epoch 3: Training Gen loss: 0.6075705289840698 Training Disc loss: 0.9710462093353271 Testing Gen loss: 0.7530218362808228 Testing Disc loss: 0.6829001307487488
+Epoch 0: Training Gen loss: 0.8514267802238464 Training Disc loss: 0.6168509721755981 Testing Gen loss: 0.5987985730171204 Testing Disc loss: 0.7078360319137573
+Epoch 1: Training Gen loss: 0.772199273109436 Training Disc loss: 0.8518147468566895 Testing Gen loss: 0.7037607431411743 Testing Disc loss: 0.6674926280975342
+Epoch 2: Training Gen loss: 0.8061093688011169 Training Disc loss: 0.7619094848632812 Testing Gen loss: 0.6465803384780884 Testing Disc loss: 0.6896079778671265
+Epoch 3: Training Gen loss: 0.8130117654800415 Training Disc loss: 0.5878413915634155 Testing Gen loss: 0.8881617188453674 Testing Disc loss: 0.6492815017700195

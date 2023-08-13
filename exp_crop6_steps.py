@@ -45,7 +45,7 @@ if __name__ == '__main__':
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
-    training_mode = 'steps'            # 'epochs' or 'steps'
+    training_mode = 'epochs'            # 'epochs' or 'steps'
 
 
     '''-------------------------------------- Model --------------------------------------'''

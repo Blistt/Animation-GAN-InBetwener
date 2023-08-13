@@ -68,7 +68,7 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results_batch=None, displ
 
         step_num += 1
     
-    write_log(results_e, experiment_dir, 'test')    # Stores the metrics in a log file
+    # write_log(results_e, experiment_dir, 'test')    # Stores the metrics in a log file
 
         
     return gen_epoch_loss, disc_epoch_loss, results_e, results_batch

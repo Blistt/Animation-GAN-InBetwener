@@ -112,11 +112,11 @@ if __name__ == '__main__':
 
     
     '''-------------------------------------- Execute Experiment --------------------------------------'''
-    if training_mode == 'steps':
+    if training_mode == 'epochs':
         from train_epochs import train
+        plot_step = plot_step * 2
     else:
         from train import train
-
     # Records time it takes to train the model
     start_time = time.time()
 

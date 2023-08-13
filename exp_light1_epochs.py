@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
 
     '''-------------------------------------- Training loop parameters --------------------------------------'''
-    n_epochs = 300                      # Number of epochs
+    n_epochs = 4                      # Number of epochs
     input_dim = 2                       # Input channels (1 for each grayscale input frame)
     label_dim = 1                       # Output channels (1 for each grayscale output frame)
     hidden_channels = 64                # Hidden channels of the generator and discriminator
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     target_size = (373, 373)                   # Cropped frames' image size
     gen_extra = 0                       # Number of extra generator steps if outperformed by discriminator    
     disc_extra = 0                      # Number of extra discriminator steps if outperformed by generator
-    training_mode = 'epochs'             # 'epochs' or 'steps'
+    training_mode = 'steps'             # 'epochs' or 'steps'
 
 
     '''-------------------------------------- Model --------------------------------------'''

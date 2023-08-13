@@ -19,6 +19,7 @@ import eval.chamfer_dist as chamfer_dist
 from collections import defaultdict
 import numpy as np
 from utils.utils import get_edt
+from utils.utils import write_log
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
@@ -151,6 +152,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             # Calculates epoch's metrics
             for metric in metrics:
                 results_epoch[metric].append(np.mean(results_e[metric]))
+            # Saves metrics in a log file
+            write_log(results_epoch, epoch, experiment_dir=experiment_dir+'metrics/', train_test='metrics')
             
         
         '''Performs testing in MY dataset if specified'''
