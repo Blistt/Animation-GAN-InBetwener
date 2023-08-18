@@ -11,6 +11,7 @@ from torchvision.utils import make_grid
 import os
 import csv
 from eval.chamfer_dist import batch_edt
+from PIL import ImageChops
 
 
 
@@ -75,16 +76,28 @@ def show_tensor_images(image_tensor, num_images=16):
 
 
 def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
+
+    # Splits pred image into RGB channels
+    pred_label = pred.repeat(1, 3, 1, 1).reshape(pred.shape[0], 3, pred.shape[2], pred.shape[3])
+    # Shows labels as red pixels by setting the intensity of the B and G channels to 0 when the label is 0 (a black pixel)
+    pred_label[:, 1, :, :] = pred_label[:, 1, :, :] * labels.squeeze(dim=1)
+    pred_label[:, 2, :, :] = pred_label[:, 2, :, :] * labels.squeeze(dim=1)
+
     input1, input2 = crop(input1[0], pred.shape), crop(input2[0], pred.shape)
     pred = Image.fromarray(np.squeeze((pred[0].detach().cpu().numpy() * 255), axis=0))
     input1 = Image.fromarray(np.squeeze((input1.detach().cpu().numpy() * 255), axis=0))
     input2 = Image.fromarray(np.squeeze((input2.detach().cpu().numpy() * 255), axis=0))
     labels = Image.fromarray(np.squeeze((labels[0].detach().cpu().numpy() * 255), axis=0))
+    pred_label = Image.fromarray((pred_label[0].detach().cpu().permute(1, 2, 0).numpy() * 255).astype('uint8'))
+  
     # Gif for generated triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + '_true.gif', save_all=True, append_images=[labels, input2], 
                 duration=500, loop=0)
     # Gif for ground truth triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred.gif', save_all=True, append_images=[pred, input2], 
+                duration=500, loop=0)
+    # Gif for generated triplet with label
+    input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred_label.gif', save_all=True, append_images=[pred_label, input2],
                 duration=500, loop=0)
 
 
@@ -115,7 +128,7 @@ def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='ex
             plt.close()
         
 
-def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='testing', size=(20, 20)):
+def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='metrics', size=(20, 20)):
 
     # Creates experiment directory if it doesn't exist'
     experiment_dir = experiment_dir + train_test
@@ -144,10 +157,12 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='test
     plt.show()
     plt.close()
 
+    write_log(metrics, experiment_dir)  # Saves metrics in a csv file
 
-def write_log(log, experiment_dir, train_test):
+
+def write_log(log, experiment_dir):
     # Open a new file for writing
-    with open(experiment_dir+train_test+'.csv', 'w', newline='') as f:
+    with open(experiment_dir+'.csv', 'w', newline='') as f:
         writer = csv.writer(f)
         
         # Write the header row
