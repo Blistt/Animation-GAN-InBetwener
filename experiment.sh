@@ -17,3 +17,13 @@ python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga
 python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_light2_epochs.ini
 
 python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp20_steps.ini
+
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop_base_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop1_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop7_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop8_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop9_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_crop11_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_light_base_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_light1_mini.ini
+python /home/farriaga/gan-interpolator/run_experiment.py --config /home/farriaga/gan-interpolator/exp_light2_mini.ini
