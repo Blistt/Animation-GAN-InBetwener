@@ -117,8 +117,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             # Calculates epoch's metrics
             for metric in metrics:
                 results_epoch[metric].append(np.mean(results_e[metric]))
-            # Saves metrics in a log file
-            write_log(results_epoch, epoch, experiment_dir=experiment_dir+'metrics/', train_test='metrics')
+
             
             
         
