@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7effb2149dd0>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7efd869a53d0>)
 ('gen', GeneratorLight(
   (down_sample_blocks): Sequential(
     (0): Conv2d(2, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
@@ -105,10 +105,10 @@ Parameter Group 0
 ))
 ('display_step', 10)
 ('plot_step', 1)
-('test_dataset', <dataset_class.MyDataset object at 0x7effc9a8f790>)
-('my_dataset', <dataset_class.MyDataset object at 0x7effc972ea50>)
+('test_dataset', <dataset_class.MyDataset object at 0x7efd8602cad0>)
+('my_dataset', <dataset_class.MyDataset object at 0x7efd86f00b50>)
 ('save_checkpoints', False)
 ('disc_extra', 0)
 ('gen_extra', 0)
-('experiment_dir', 'exp_light1_epochs/')
-('f', <_io.TextIOWrapper name='exp_light1_epochs/parameters.txt' mode='w' encoding='UTF-8'>)
+('experiment_dir', 'exp_light1_steps/')
+('f', <_io.TextIOWrapper name='exp_light1_steps/parameters.txt' mode='w' encoding='UTF-8'>)

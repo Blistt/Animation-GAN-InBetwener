@@ -18,7 +18,9 @@ from utils.utils import write_log
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
           metrics=None, display_step=4, plot_step=10, test_dataset=None, my_dataset=None, save_checkpoints=True, 
-          disc_extra=2, gen_extra=3, experiment_dir='exp/'):  
+          disc_extra=0, gen_extra=0, experiment_dir='exp/'): 
+
+    print('plot step', plot_step) 
     
     # Prints all function parameters in experiment directory
     with open(experiment_dir + 'parameters.txt', 'w') as f:
@@ -85,7 +87,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
 
 
             '''Visualizes predictions'''
-            if step_num % train_display_step == 0 and epoch % plot_step == 0:            
+            if step_num % train_display_step == 0:            
                 # Saves torch image with the batch of predicted and real images
                 save_image(real, train_dir + str(step_num) + '_real.png', nrow=4, normalize=False)
                 save_image(preds, train_dir + str(step_num) + '_preds.png', nrow=4, normalize=False)
