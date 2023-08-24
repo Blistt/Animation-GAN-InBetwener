@@ -1,0 +1,2 @@
+Epoch 0: Training Gen loss: 10.258403778076172 Training Disc loss: 2.1275969629641622e-05 Testing Gen loss: 8.119955062866211 Testing Disc loss: 1.4478332996368408
+Epoch 1: Training Gen loss: 11.479198455810547 Training Disc loss: 3.412330897845095e-06 Testing Gen loss: 10.132208824157715 Testing Disc loss: 1.9561562538146973
