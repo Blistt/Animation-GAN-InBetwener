@@ -105,7 +105,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             
 
             '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            n_gen_steps = min(gen_extra, int((gen_loss.item() / (disc_loss.item())) - 1))   # Calculates number of additional training 
+            n_gen_steps = min(gen_extra, int((gen_loss.item() / (disc_loss.item()) + 0.0000001) - 1))   # Calculates number of additional training 
                                                                                     # steps for generator (limits it to 3 max)
             if n_gen_steps > 0:  
                 print('Number of additional training steps for generator: ' + str(n_gen_steps))

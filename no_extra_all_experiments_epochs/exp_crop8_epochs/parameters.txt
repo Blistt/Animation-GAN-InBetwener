@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7f89541b4a10>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7f2957739f90>)
 ('gen', UNetCrop(
   (upfeature): FeatureMapBlock(
     (conv): Conv2d(2, 64, kernel_size=(1, 1), stride=(1, 1))
@@ -133,8 +133,8 @@ Parameter Group 0
 ))
 ('display_step', 10)
 ('plot_step', 2)
-('test_dataset', <dataset_class.MyDataset object at 0x7f893b251390>)
-('my_dataset', <dataset_class.MyDataset object at 0x7f8954143850>)
+('test_dataset', <dataset_class.MyDataset object at 0x7f29571d9e10>)
+('my_dataset', <dataset_class.MyDataset object at 0x7f2957495b50>)
 ('save_checkpoints', False)
 ('disc_extra', 0)
 ('gen_extra', 0)
