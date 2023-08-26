@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7f6e6462c290>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7f1c33c1d790>)
 ('gen', GeneratorLight(
   (down_sample_blocks): Sequential(
     (0): Conv2d(2, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
@@ -105,8 +105,8 @@ Parameter Group 0
 ))
 ('display_step', 10)
 ('plot_step', 2)
-('test_dataset', <dataset_class.MyDataset object at 0x7f6e643b1dd0>)
-('my_dataset', <dataset_class.MyDataset object at 0x7f6e51ddf010>)
+('test_dataset', <dataset_class.MyDataset object at 0x7f1c33c2d810>)
+('my_dataset', <dataset_class.MyDataset object at 0x7f1c44176590>)
 ('save_checkpoints', False)
 ('disc_extra', 0)
 ('gen_extra', 0)

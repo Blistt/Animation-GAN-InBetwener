@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7f0cf88413d0>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7f02d330d550>)
 ('gen', UNetCrop(
   (upfeature): FeatureMapBlock(
     (conv): Conv2d(2, 64, kernel_size=(1, 1), stride=(1, 1))
@@ -122,7 +122,7 @@ Parameter Group 0
 ('r3', MS_SSIM())
 ('lambr2', 1.0)
 ('lambr3', 5.0)
-('n_epochs', 4)
+('n_epochs', 20)
 ('batch_size', 8)
 ('device', 'cuda:1')
 ('metrics', MetricCollection(
@@ -132,11 +132,11 @@ Parameter Group 0
   (ssim): SSIMMetricCPU()
 ))
 ('display_step', 10)
-('plot_step', 2)
-('test_dataset', <dataset_class.MyDataset object at 0x7f0d0f9b9e10>)
-('my_dataset', <dataset_class.MyDataset object at 0x7f0d0fdf3690>)
+('plot_step', 1)
+('test_dataset', <dataset_class.MyDataset object at 0x7f02ecb05490>)
+('my_dataset', <dataset_class.MyDataset object at 0x7f02ec70a450>)
 ('save_checkpoints', False)
 ('disc_extra', 0)
 ('gen_extra', 0)
-('experiment_dir', 'exp_crop_base_epochs/')
-('f', <_io.TextIOWrapper name='exp_crop_base_epochs/parameters.txt' mode='w' encoding='UTF-8'>)
+('experiment_dir', 'exp_crop_base_steps_2/')
+('f', <_io.TextIOWrapper name='exp_crop_base_steps_2/parameters.txt' mode='w' encoding='UTF-8'>)
