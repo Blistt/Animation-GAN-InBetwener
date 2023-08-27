@@ -56,6 +56,14 @@ def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         nn.init.xavier_uniform_(m.weight)
 
+
+def siren_weights_init(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+        n_in = m.in_channels
+        n_units = m.out_channels
+        c = 1 / math.sqrt(n_in) * math.sqrt(6 / (n_in + n_units))
+        nn.init.uniform_(m.weight, -c, c)
+
 # def weights_init(m):
 #     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
 #         nn.init.normal_(m.weight, 0.0, 0.02)

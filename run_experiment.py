@@ -1,11 +1,15 @@
 import torch
 from torch import nn
 from torchvision import transforms
-from generator_crop import UNetCrop
-from generator_light import GeneratorLight
-from discriminator_crop import DiscriminatorCrop
-from discriminator_full import DiscriminatorFull
-from utils.utils import weights_init
+# from generator_crop import UNetCrop
+# from generator_light import GeneratorLight
+# from discriminator_crop import DiscriminatorCrop
+# from discriminator_full import DiscriminatorFull
+from generator_light_siren import GeneratorLight
+from discriminator_full_siren import DiscriminatorFull
+from generator_crop_siren import UNetCrop
+from discriminator_crop_siren import DiscriminatorCrop
+from utils.utils import weights_init, siren_weights_init
 from dataset_class import MyDataset
 import os
 import torchmetrics
@@ -122,8 +126,8 @@ if __name__ == '__main__':
         loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
         gen.load_state_dict(loaded_state)
     else:
-        gen = gen.apply(weights_init)
-        disc = disc.apply(weights_init)
+        gen = gen.apply(siren_weights_init)
+        disc = disc.apply(siren_weights_init)
 
     '''
     Miniature experiment parameters - Overfiting a single batch
