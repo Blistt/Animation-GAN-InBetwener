@@ -36,13 +36,13 @@ class ExpandingBlock(nn.Module):
     Values:
         input_channels: the number of channels to expect from a given input
     '''
-    def __init__(self, input_channels):
+    def __init__(self, input_channels, scaling=1.):
         super(ExpandingBlock, self).__init__()
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.conv1 = nn.Conv2d(input_channels, input_channels//2, kernel_size=2, stride=1)
         self.conv2 = nn.Conv2d(input_channels, input_channels//2, kernel_size=3, stride=1)
         self.conv3 = nn.Conv2d(input_channels//2, input_channels//2, kernel_size=3, stride=1)
-        self.activation = Sine(self.scaling)
+        self.activation = Sine(scaling)
 
     def forward(self, x, skip_con_x):
         '''
@@ -107,7 +107,7 @@ class UNetCrop(nn.Module):
         super(UNetCrop, self).__init__()
         # "Every step in the expanding path consists of an upsampling of the feature map"
         self.scaling = scaling
-        self.upfeature = FeatureMapBlock(input_channels, hidden_channels, self.scaling)
+        self.upfeature = FeatureMapBlock(input_channels, hidden_channels)
         self.contract1 = ContractingBlock(hidden_channels)
         self.contract2 = ContractingBlock(hidden_channels * 2)
         self.contract3 = ContractingBlock(hidden_channels * 4)
@@ -117,7 +117,7 @@ class UNetCrop(nn.Module):
         self.expand3 = ExpandingBlock(hidden_channels * 4)
         self.expand4 = ExpandingBlock(hidden_channels * 2)
         self.downfeature = FeatureMapBlock(hidden_channels, output_channels)
-        self.activation = Sine(scaling)
+        self.activation = nn.Sigmoid()
 
     def forward(self, i1, i2):
         x0 = self.upfeature(i1, i2)
