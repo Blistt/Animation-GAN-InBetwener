@@ -12,7 +12,7 @@ class GeneratorLight(nn.Module):
     A generator without noise z
     '''
 
-    def __init__(self, input_channels, hidden_channels):
+    def __init__(self, input_channels, hidden_channels, scaling=1.):
         super(GeneratorLight, self).__init__()
         filter_size = 4
         stride_size = 2
@@ -20,28 +20,28 @@ class GeneratorLight(nn.Module):
         self.down_sample_blocks = nn.Sequential(
             nn.Conv2d(input_channels * 2, hidden_channels * 2, kernel_size=3, stride=1, padding=1, bias=False),  # size
             nn.BatchNorm2d(hidden_channels * 2),
-            Sine(30.),
+            Sine(scaling),
             nn.Conv2d(hidden_channels * 2, hidden_channels * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
             nn.BatchNorm2d(hidden_channels * 2),
-            Sine(30.),
+            Sine(scaling),
             nn.Conv2d(hidden_channels * 2, hidden_channels * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
             nn.BatchNorm2d(hidden_channels * 4),
-            Sine(30.),
+            Sine(scaling),
             nn.Conv2d(hidden_channels * 4, hidden_channels * 8, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size/2
             nn.BatchNorm2d(hidden_channels * 8),
-            Sine(30.)
+            Sine(scaling)
             )
         
         self.up_sample_block = nn.Sequential(
             nn.ConvTranspose2d(hidden_channels * 8, hidden_channels * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
             nn.BatchNorm2d(hidden_channels * 4),
-            Sine(30.),
+            Sine(scaling),
             nn.ConvTranspose2d(hidden_channels * 4, hidden_channels * 2, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
             nn.BatchNorm2d(hidden_channels * 2),
-            Sine(30.),
+            Sine(scaling),
             nn.ConvTranspose2d(hidden_channels * 2, hidden_channels, kernel_size=filter_size, stride=stride_size, padding=1, bias=False),  # size*2
             nn.BatchNorm2d(hidden_channels),
-            Sine(30.),
+            Sine(scaling),
             nn.ConvTranspose2d(hidden_channels, input_channels, kernel_size=3, stride=1, padding=1, bias=False),  # size
             nn.Sigmoid()
             )

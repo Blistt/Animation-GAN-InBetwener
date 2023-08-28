@@ -139,7 +139,7 @@ if __name__ == '__main__':
         test_data_dir = 'mini_datasets/mini_test_triplets/'
         test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                 crop_shape=target_size)
-        n_epochs = min(1000, n_epochs * 250)
+        n_epochs = min(1000, n_epochs * 100)
         display_step = 1
         plot_step = n_epochs // 50                              # Ensures there is always 50 plots
         print('plot_step: ', plot_step)

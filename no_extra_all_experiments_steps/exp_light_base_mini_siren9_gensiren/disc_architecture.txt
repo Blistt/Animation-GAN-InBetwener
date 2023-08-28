@@ -1,4 +1,4 @@
-DiscriminatorCrop(
+DiscriminatorFull(
   (conv_blocks): Sequential(
     (0): Conv2d(1, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
     (1): Sine()
@@ -23,6 +23,10 @@ DiscriminatorCrop(
     (20): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
     (21): Sine()
     (22): Dropout2d(p=0.25, inplace=False)
-    (23): Conv2d(512, 1, kernel_size=(4, 4), stride=(2, 2), bias=False)
+    (23): Conv2d(512, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (24): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (25): Sine()
+    (26): Dropout2d(p=0.25, inplace=False)
+    (27): Conv2d(512, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
   )
 )
