@@ -106,6 +106,7 @@ class UNetCrop(nn.Module):
     def __init__(self, input_channels, output_channels, hidden_channels=64):
         super(UNetCrop, self).__init__()
         # "Every step in the expanding path consists of an upsampling of the feature map"
+        print('Using UNetCrop')
         self.upfeature = FeatureMapBlock(input_channels, hidden_channels)
         self.contract1 = ContractingBlock(hidden_channels)
         self.contract2 = ContractingBlock(hidden_channels * 2)
@@ -120,14 +121,23 @@ class UNetCrop(nn.Module):
 
     def forward(self, i1, i2):
         x0 = self.upfeature(i1, i2)
+        # print('x0.shape: ', x0.shape)
         x1 = self.contract1(x0)
+        # print('x1.shape: ', x1.shape)
         x2 = self.contract2(x1)
+        # print('x2.shape: ', x2.shape)
         x3 = self.contract3(x2)
+        # print('x3.shape: ', x3.shape)
         x4 = self.contract4(x3)
+        # print('x4.shape: ', x4.shape)
         x5 = self.expand1(x4, x3)
+        # print('x5.shape: ', x5.shape)
         x6 = self.expand2(x5, x2)
+        # print('x6.shape: ', x6.shape)
         x7 = self.expand3(x6, x1)
+        # print('x7.shape: ', x7.shape)
         x8 = self.expand4(x7, x0)
+        # print('x8.shape: ', x8.shape)
         xn = self.downfeature(x8)
-        # return xn
+        # print('xn.shape: ', xn.shape)
         return self.activation(xn)
