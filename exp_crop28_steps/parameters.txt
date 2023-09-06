@@ -1,4 +1,4 @@
-('tra_dataset', <dataset_class.MyDataset object at 0x7f4a897f0fd0>)
+('tra_dataset', <dataset_class.MyDataset object at 0x7f778a8ad350>)
 ('gen', UNetCrop(
   (upfeature): FeatureMapBlock(
     (conv): Conv2d(2, 64, kernel_size=(1, 1), stride=(1, 1))
@@ -124,7 +124,7 @@ Parameter Group 0
 ('lambr3', 1.0)
 ('n_epochs', 5)
 ('batch_size', 8)
-('device', 'cpu')
+('device', 'cuda:1')
 ('metrics', MetricCollection(
   (chamfer): ChamferDistance2dMetric()
   (mse): MeanSquaredError()
@@ -133,8 +133,8 @@ Parameter Group 0
 ))
 ('display_step', 10)
 ('plot_step', 1)
-('test_dataset', <dataset_class.MyDataset object at 0x7f4a890e19d0>)
-('my_dataset', <dataset_class.MyDataset object at 0x7f4a894f5f50>)
+('test_dataset', <dataset_class.MyDataset object at 0x7f778a559e10>)
+('my_dataset', <dataset_class.MyDataset object at 0x7f778a9f51d0>)
 ('save_checkpoints', False)
 ('disc_extra', 0)
 ('gen_extra', 0)

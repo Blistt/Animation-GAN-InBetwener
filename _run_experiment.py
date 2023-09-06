@@ -5,6 +5,7 @@ from _generator_crop import UNetCrop
 from _generator_light import GeneratorLight
 from _discriminator_crop import DiscriminatorCrop
 from _discriminator_full import DiscriminatorFull
+from _discriminator_full_spectral import DiscriminatorFullSpectral
 from _discriminator_crop_double import DiscriminatorCropDouble
 from _utils.utils import weights_init, siren_weights_init
 from _dataset_class import MyDataset

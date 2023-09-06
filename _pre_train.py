@@ -2,7 +2,7 @@ from torch.utils.data import DataLoader
 import tqdm
 from _loss import pre_train_loss
 from torchvision.utils import save_image
-from utils.utils import create_gif
+from _utils.utils import create_gif
 import os
 from torch import nn
 
