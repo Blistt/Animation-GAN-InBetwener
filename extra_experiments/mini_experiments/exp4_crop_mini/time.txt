@@ -1,1 +1,0 @@
-Training took 40.07640614906947 minutes
