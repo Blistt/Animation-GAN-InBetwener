@@ -3,10 +3,10 @@ from torch import nn
 from tqdm.auto import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from _generator_crop import UNetCrop
-from _generator_light import GeneratorLight
-from _discriminator_crop import DiscriminatorCrop
-from _discriminator_full import DiscriminatorFull
+from generators._generator_crop import UNetCrop
+from generators._generator_light import GeneratorLight
+from discriminators._discriminator_crop import DiscriminatorCrop
+from discriminators._discriminator_full import DiscriminatorFull
 from _utils.utils import weights_init, visualize_batch_loss, create_gif, visualize_batch_eval
 from _dataset_class import MyDataset
 from _loss import get_gen_loss

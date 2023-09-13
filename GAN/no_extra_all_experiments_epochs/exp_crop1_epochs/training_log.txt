@@ -1,2 +1,0 @@
-Epoch 1: Training Gen loss: 0.7659859657287598 Training Disc loss: 0.00027158422744832933 
-Epoch 3: Training Gen loss: 0.13677915930747986 Training Disc loss: 0.009187054820358753 
