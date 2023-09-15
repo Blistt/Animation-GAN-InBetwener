@@ -169,6 +169,14 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         '''
         ################## PLOTS AND CHECKPOINTS ##################
         '''
+        # Saves checkpoing with model's current state
+        if save_checkpoints:
+            if epoch > 0:
+                # Only save checkpoint if reaching the minimum chamfer metric
+                if results_epoch['chamfer'][-1] <= min(results_epoch['chamfer']):
+                    torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint.pth')
+                    torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint.pth')
+
         if epoch % plot_step == 0:
             # Save snapshot of model architecture``
             if epoch == 0:
@@ -176,13 +184,6 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                     print(gen, file=f)
                 with open(experiment_dir + 'disc_architecture.txt', 'w') as f:
                     print(disc, file=f)
-
-            # Saves checkpoing with model's current state
-            if save_checkpoints:
-                # only save checkpoint if current chamfer distance is the lowest so far
-                if epoch == 0 or min(results_epoch['chamfer_dist']) == results_epoch['chamfer_dist'][-1]:
-                    torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint' + '.pth')
-                    torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint' + '.pth')
 
             # Plots losses
             visualize_batch_loss(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,

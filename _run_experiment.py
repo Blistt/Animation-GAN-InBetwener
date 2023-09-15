@@ -3,6 +3,7 @@ from torch import nn
 from torchvision import transforms
 from generators._generator_crop import UNetCrop
 from generators._generator_light import GeneratorLight
+from generators._generator_light_spectral import GeneratorLightSpectral
 from discriminators._discriminator_crop import DiscriminatorCrop
 from discriminators._discriminator_full import DiscriminatorFull
 from discriminators._discriminator_full_spectral import DiscriminatorFullSpectral
