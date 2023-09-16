@@ -61,9 +61,6 @@ class GeneratorLightSpectral(nn.Module):
             nn.LeakyReLU(0.02, inplace=True)
             )
         
-        self.postConv = nn.Sequential(
-            nn_utils.spectral_norm(nn.Conv2d(hidden_channels * 8, hidden_channels * 8, kernel_size=3, stride=1, padding=1, bias=False)),  # size/2
-        
         self.up_sample_block = nn.Sequential(
             nn_utils.spectral_norm(nn.ConvTranspose2d(hidden_channels * 8, hidden_channels * 4, kernel_size=filter_size, stride=stride_size, padding=1, bias=False)),  # size*2
             nn.BatchNorm2d(hidden_channels * 4),

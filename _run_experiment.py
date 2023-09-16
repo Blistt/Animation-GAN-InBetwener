@@ -84,13 +84,13 @@ if __name__ == '__main__':
     train_data_dir = config.get('train_data_dir')
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size)
-    # Testing dataset (optional)
-    test_data_dir = config.get('test_data_dir')
-    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+    # Validation dataset (optional)
+    val_dataset = config.get('val_data_dir')
+    val_dataset = MyDataset(val_dataset, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)
-    # MY dataset (optional)
-    my_data_dir = config.get('my_data_dir')
-    my_dataset = MyDataset(my_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+    # test dataset
+    test_data_dir = config.get('my_data_dir')
+    test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                            crop_shape=target_size)
     
 
@@ -135,8 +135,8 @@ if __name__ == '__main__':
         train_data_dir = 'mini_datasets/mini_train_triplets/'
         train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size)        
-        test_data_dir = 'mini_datasets/mini_test_triplets/'
-        test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
+        val_dataset = 'mini_datasets/mini_test_triplets/'
+        val_dataset = MyDataset(val_dataset, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                 crop_shape=target_size)
         n_epochs = min(1000, n_epochs * 100)
         display_step = 1
@@ -156,8 +156,8 @@ if __name__ == '__main__':
 
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
-          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, test_dataset=test_dataset,
-          my_dataset=my_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
+          device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, val_dataset=val_dataset,
+          test_dataset=test_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
           experiment_dir=experiment_dir)
     
     # Saves the time the experiment took in a text file in experiment directory

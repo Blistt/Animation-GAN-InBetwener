@@ -23,7 +23,7 @@ from _utils.utils import get_edt
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
-          metrics=None, display_step=4, plot_step=10, test_dataset=None, my_dataset=None, save_checkpoints=True, 
+          metrics=None, display_step=4, plot_step=10, val_dataset=None, test_dataset=None, save_checkpoints=True, 
           disc_extra=2, gen_extra=3, experiment_dir='exp/'):  
     
     # Prints all function parameters in experiment directory
@@ -73,27 +73,6 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_loss.backward(retain_graph=True)
             disc_opt.step()
 
-
-            '''Trains discriminator again if generator loss is twice as low as discriminator loss'''
-            if step_num != 0:
-                # Calculates number of additional training steps for discriminator (limits it to 2 max)
-                n_disc_steps = min(disc_extra, int((disc_loss.item() / (gen_loss.item())) - 1))
-                if n_disc_steps > 0:
-                    print('Number of additional training steps for discriminator: ' + str(n_disc_steps))
-                    for i in range(n_disc_steps):
-                        # Train discriminator again
-                        disc_opt.zero_grad()
-                        # Discriminator loss for predicted images
-                        disc_pred_hat = disc(preds.detach())
-                        disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
-                        # Discriminator loss for real images
-                        disc_real_hat = disc(real)
-                        disc_real_loss = adv_l(disc_real_hat, torch.ones_like(disc_real_hat))
-                        # Total discriminator loss
-                        disc_loss = (disc_fake_loss + disc_real_loss) / 2
-                        disc_loss.backward(retain_graph=True)
-                        disc_opt.step()
-
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
@@ -102,24 +81,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                                     lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
             gen_loss.backward()
             gen_opt.step()
-            
 
-            '''Trains generator again if discriminator loss is twice as low as generator loss'''
-            n_gen_steps = min(gen_extra, int((gen_loss.item() / (disc_loss.item() + 0.0000001)) - 1))   # Calculates number of additional training 
-                                                                                    # steps for generator (limits it to 3 max)
-            if n_gen_steps > 0:  
-                print('Number of additional training steps for generator: ' + str(n_gen_steps))
-                for i in range(n_gen_steps):
-                    # Train generator again
-                    gen_opt.zero_grad()
-                    preds = gen(input1, input2)
-                    gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
-                                    lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
-                    gen_loss.backward()
-                    gen_opt.step()
-            tr_gen_losses.append(gen_loss.item())
             tr_disc_losses.append(disc_loss.item())
-
+            tr_gen_losses.append(gen_loss.item())
+            
             '''Visualizes predictions'''
             if step_num % train_display_step == 0 and epoch % plot_step == 0:            
                 # Saves torch image with the batch of predicted and real images
@@ -133,19 +98,19 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         '''
         ######################## TESTING ############################
         '''
-        if test_dataset is not None:
+        if val_dataset is not None:
             os.makedirs(experiment_dir+'test/', exist_ok=True)
             torch.cuda.empty_cache()    # Free up unused memory before starting testing process
             gen.eval(), disc.eval()     # Set the model to evaluation mode
             '''Evaluate the model on the test dataset'''
             with torch.no_grad():
-                test_gen_loss, test_disc_loss, results_e, results_batch = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, 
+                test_gen_loss, test_disc_loss, results_e, results_batch = test(val_dataset, gen, disc, adv_l, adv_lambda, epoch, 
                                                                            results_batch=results_batch, display_step=display_step, 
                                                                            plot_step=plot_step, r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
                                                                            lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
                                                                            metrics=metrics, device=device, 
                                                                            experiment_dir=experiment_dir+'test/')
-            # Aggregates test losses for the whole epoch
+            # Aggregates test losses for the whole epoch (these are lists, so addition means appending)
             test_gen_losses += test_gen_loss
             test_disc_losses += test_disc_loss
             # Calculates epoch's metrics
@@ -153,15 +118,15 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                 results_epoch[metric].append(np.mean(results_e[metric]))
             
         
-        '''Performs testing in MY dataset if specified'''
-        if my_dataset is not None:
+        '''Performs testing in Testing dataset'''
+        if test_dataset is not None:
             my_display_step = 1
             os.makedirs(experiment_dir+'cool_test/', exist_ok=True)
             # Free up unused memory before starting testing process
             torch.cuda.empty_cache()
             gen.eval(), disc.eval()     # Set the model to evaluation mode              
             with torch.no_grad():
-                unused_loss = test(my_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=my_display_step, plot_step=plot_step, 
+                unused_loss = test(test_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=my_display_step, plot_step=plot_step, 
                                    r1=r1, lambr1=lambr1, r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
                                     device=device, experiment_dir=experiment_dir+'cool_test/')
             
