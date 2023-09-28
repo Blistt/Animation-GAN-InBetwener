@@ -89,7 +89,7 @@ if __name__ == '__main__':
     val_dataset = MyDataset(val_dataset, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)
     # test dataset
-    test_data_dir = config.get('my_data_dir')
+    test_data_dir = config.get('test_data_dir')
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                            crop_shape=target_size)
     
@@ -122,8 +122,10 @@ if __name__ == '__main__':
                          n_epochs=pre_train_epochs, batch_size=batch_size, device=device)
     # Loads pre-trained model if specified
     if pretrain=='load':
-        loaded_state = torch.load('/data/farriaga/Experiments/unet_int/exp3/checkpoint30.pth')
-        gen.load_state_dict(loaded_state)
+        gen_loaded_state = torch.load(config.get('load_gen'))
+        gen.load_state_dict(gen_loaded_state)
+        disc_loaded_state = torch.load(config.get('load_disc'))
+        disc.load_state_dict(disc_loaded_state)
     else:
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)

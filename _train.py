@@ -102,7 +102,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             os.makedirs(experiment_dir+'test/', exist_ok=True)
             torch.cuda.empty_cache()    # Free up unused memory before starting testing process
             gen.eval(), disc.eval()     # Set the model to evaluation mode
-            '''Evaluate the model on the test dataset'''
+            '''Evaluate the model on the validation dataset'''
             with torch.no_grad():
                 test_gen_loss, test_disc_loss, results_e, results_batch = test(val_dataset, gen, disc, adv_l, adv_lambda, epoch, 
                                                                            results_batch=results_batch, display_step=display_step, 

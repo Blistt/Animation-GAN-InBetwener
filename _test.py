@@ -25,12 +25,12 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results_batch=None, displ
     for input1, real, input2 in tqdm.tqdm(dataloader):
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
+        '''Get generator loss'''
         preds = gen(input1, input2)
-
         gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, lambr1=lambr1, 
                                 r2=r2, r3=r3, lambr2=lambr2, lambr3=lambr3, device=device)
 
-        '''Train discriminator'''
+        '''Get discriminator loss'''
         # Discriminator loss for predicted images
         disc_pred_hat = disc(preds.detach())
         disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))
