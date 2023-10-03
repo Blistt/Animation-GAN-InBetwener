@@ -142,8 +142,8 @@ def batch_chamfer_distance(gt, pred, block=1024, return_more=False, bit_reverse=
     pred = (pred>binarize_at).float()
 
     if bit_reverse:
-        gt = 1-gt
-        pred = 1-pred
+        gt = 1 - gt
+        pred = 1 - pred
     t = batch_chamfer_distance_t(gt, pred, block=block)
     p = batch_chamfer_distance_p(gt, pred, block=block)
     cd = (t + p) / 2
