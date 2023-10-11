@@ -62,6 +62,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             disc_opt.zero_grad()
             # Discriminator loss for predicted images
             with torch.no_grad():
+                print('shape of input', input1.shape)
                 preds = gen(input1, input2)
             disc_pred_hat = disc(preds.detach())
             disc_fake_loss = adv_l(disc_pred_hat, torch.zeros_like(disc_pred_hat))

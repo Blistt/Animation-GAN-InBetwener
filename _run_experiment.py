@@ -90,6 +90,7 @@ if __name__ == '__main__':
                              crop_shape=target_size)
     # test dataset
     test_data_dir = config.get('test_data_dir')
+    print('test_data_dir: ', test_data_dir)
     test_dataset = MyDataset(test_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                            crop_shape=target_size)
     
