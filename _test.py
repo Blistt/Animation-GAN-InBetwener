@@ -7,9 +7,10 @@ from torchvision.utils import save_image
 from _utils.utils import create_gif, write_log
 from collections import defaultdict
 import numpy as np
+from _evaluate import evaluate
 
 # testing function
-def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results_batch=None, display_step=10, plot_step=10, r1=nn.BCELoss(), 
+def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_step=10, r1=nn.BCELoss(), 
          lambr1=0.5, r2=None, r3=None, lambr2=None, lambr3=None, metrics=None, batch_size=12, device='cuda', 
          experiment_dir='exp/'):
     '''
@@ -45,20 +46,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results_batch=None, displ
 
         '''Compute evaluation metrics'''
         if metrics is not None:
-            # Transfer tensors to other device to avoid issues with memory leak
-            other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
-            preds = preds.to(other_device)
-            real = real.to(other_device)
+            results_e = evaluate(preds, real, results_e, device)
             
-            # Compute metrics
-            raw_metrics = metrics(preds, real)
-            for k, v in raw_metrics.items():
-                results_batch[k].append(v.item())
-                results_e[k].append(v.item())
-            
-            print('number of overall batch losses', len(results_batch['ssim']))
-            print('number of batch losses in epoch', len(results_e['ssim']))
-
         if step_num % display_step == 0 and epoch % plot_step == 0:
             # Saves torch image with the batch of predicted and real images
             id = str(epoch) + '_' + str(step_num)
@@ -67,8 +56,5 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, results_batch=None, displ
             create_gif(input1, real, input2, preds, experiment_dir, id) # Saves gifs of the predicted and ground truth triplets
 
         step_num += 1
-    
-    # write_log(results_e, experiment_dir, 'test')    # Stores the metrics in a log file
-
         
-    return gen_epoch_loss, disc_epoch_loss, results_e, results_batch
+    return gen_epoch_loss, disc_epoch_loss, results_e

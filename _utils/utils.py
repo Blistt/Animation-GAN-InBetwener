@@ -136,7 +136,7 @@ def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='ex
             plt.close()
         
 
-def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='metrics', size=(20, 20)):
+def visualize_batch_eval(test_metrics, train_metrics, epoch, experiment_dir='exp/', train_test='metrics', size=(20, 20)):
 
     # Creates experiment directory if it doesn't exist'
     experiment_dir = experiment_dir + train_test
@@ -144,7 +144,7 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='metr
 
     # Plots all metrics in metrics dictionary in a plt figure
     # Create a new figure with multiple subplots arranged in a square grid
-    num_metrics = len(metrics)
+    num_metrics = len(test_metrics)
     num_rows = math.ceil(math.sqrt(num_metrics))
     num_cols = math.ceil(num_metrics / num_rows)
     fig, axes = plt.subplots(num_rows, num_cols, figsize=size)
@@ -152,12 +152,13 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='metr
     # Flatten the axes array to make it easier to iterate over
     axes = axes.flatten()
     
-    # Plot the values of each metric in a separate subplot
-    for i, (metric, values) in enumerate(metrics.items()):
-        axes[i].plot(values, label=metric)
+    # Plot both train and test values of each metric in a separate subplot
+    for i, (metric, values) in enumerate(test_metrics.items()):
+        axes[i].plot(values, label='test')
+        axes[i].plot(train_metrics[metric], label='train')
         axes[i].set_title(metric)
-        axes[i].set_xlabel('training step')
-    
+        axes[i].set_xlabel('Epoch')
+
     # Save the plot to a file
     plt.savefig(f'{experiment_dir}/metrics_{epoch}.png')
     
@@ -165,7 +166,7 @@ def visualize_batch_eval(metrics, epoch, experiment_dir='exp/', train_test='metr
     plt.show()
     plt.close()
 
-    write_log(metrics, experiment_dir)  # Saves metrics in a csv file
+    write_log(test_metrics, experiment_dir)  # Saves test metrics in a csv file
 
 
 def write_log(log, experiment_dir):

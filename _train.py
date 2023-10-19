@@ -1,24 +1,20 @@
 import torch
 from torch import nn
 from tqdm.auto import tqdm
-from torchvision import transforms
 from torch.utils.data import DataLoader
 from generators._generator_crop import UNetCrop
 from generators._generator_light import GeneratorLight
 from discriminators._discriminator_crop import DiscriminatorCrop
 from discriminators._discriminator_full import DiscriminatorFull
 from _utils.utils import weights_init, visualize_batch_loss, create_gif, visualize_batch_eval
-from _dataset_class import MyDataset
 from _loss import get_gen_loss
 from _test import test
 import os
 from torchvision.utils import save_image
-import torchmetrics
-import _eval.my_metrics as my_metrics
-import _eval.chamfer_dist as chamfer_dist
 from collections import defaultdict
 import numpy as np
 from _utils.utils import get_edt
+from _evaluate import evaluate
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
@@ -42,8 +38,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     # stores discriminator losses
     test_gen_losses = []
     test_disc_losses = []
-    results_batch = defaultdict(list)     # Stores metrics
-    results_epoch = defaultdict(list)     # Stores metrics for an epoch
+    # Stores metrics
+    train_results_epoch = defaultdict(list)
+    test_results_epoch = defaultdict(list)
+    
     dataloader = DataLoader(tra_dataset, batch_size=batch_size, shuffle=True)
     train_display_step = len(dataloader)//display_step
 
@@ -52,8 +50,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     '''
     step_num = 0
     for epoch in range(n_epochs):
+     
         print('Epoch: ' + str(epoch))
         gen.train(), disc.train()       # Set the models to training mode
+        train_results_e = defaultdict(list)     # Stores internal metrics for an epoch
 
         for input1, real, input2 in tqdm(dataloader):
             input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
@@ -82,9 +82,13 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen_loss.backward()
             gen_opt.step()
 
+            # Stores batch losses
             tr_disc_losses.append(disc_loss.item())
             tr_gen_losses.append(gen_loss.item())
-            
+
+            # Compute evaluation metrics and adds them to the epoch's results dictionary
+            train_results_e = evaluate(preds, real, metrics, train_results_e, device)
+
             '''Visualizes predictions'''
             if step_num % train_display_step == 0 and epoch % plot_step == 0:            
                 # Saves torch image with the batch of predicted and real images
@@ -95,28 +99,21 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             step_num += 1
         
 
+
         '''
         ######################## TESTING ############################
         '''
-        if val_dataset is not None:
-            os.makedirs(experiment_dir+'test/', exist_ok=True)
-            torch.cuda.empty_cache()    # Free up unused memory before starting testing process
-            gen.eval(), disc.eval()     # Set the model to evaluation mode
-            '''Evaluate the model on the validation dataset'''
-            with torch.no_grad():
-                test_gen_loss, test_disc_loss, results_e, results_batch = test(val_dataset, gen, disc, adv_l, adv_lambda, epoch, 
-                                                                           results_batch=results_batch, display_step=display_step, 
-                                                                           plot_step=plot_step, r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
-                                                                           lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
-                                                                           metrics=metrics, device=device, 
-                                                                           experiment_dir=experiment_dir+'test/')
-            # Aggregates test losses for the whole epoch (these are lists, so addition means appending)
-            test_gen_losses += test_gen_loss
-            test_disc_losses += test_disc_loss
-            # Calculates epoch's metrics
-            for metric in metrics:
-                results_epoch[metric].append(np.mean(results_e[metric]))
-            
+        os.makedirs(experiment_dir+'test/', exist_ok=True)
+        torch.cuda.empty_cache()    # Free up unused memory before starting testing process
+        gen.eval(), disc.eval()     # Set the model to evaluation mode
+        '''Evaluate the model on the validation dataset'''
+        with torch.no_grad():
+            test_gen_loss, test_disc_loss, test_results_e = test(val_dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=display_step, 
+                                                                        plot_step=plot_step, r1=r1, lambr1=lambr1, r2=r2, r3=r3, 
+                                                                        lambr2=lambr2, lambr3=lambr3, batch_size=batch_size, 
+                                                                        metrics=metrics, device=device, 
+                                                                        experiment_dir=experiment_dir+'test/')
+        
         
         '''Performs testing in Testing dataset'''
         if test_dataset is not None:
@@ -134,11 +131,19 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         '''
         ################## PLOTS AND CHECKPOINTS ##################
         '''
+        # Aggregates test losses for the whole epoch (these are lists, so addition means appending)
+        test_gen_losses += test_gen_loss
+        test_disc_losses += test_disc_loss
+        # Aggregates test and training metrics for the whole epoch
+        for metric in metrics:
+            test_results_epoch[metric].append(np.mean(test_results_e[metric]))
+            train_results_epoch[metric].append(np.mean(train_results_e[metric]))
+
         # Saves checkpoing with model's current state
         if save_checkpoints:
             if epoch > 0:
                 # Only save checkpoint if reaching the minimum chamfer metric
-                if results_epoch['chamfer'][-1] <= min(results_epoch['chamfer']):
+                if test_results_epoch['chamfer'][-1] <= min(test_results_epoch['chamfer']):
                     torch.save(gen.state_dict(), experiment_dir + 'gen_checkpoint.pth')
                     torch.save(disc.state_dict(), experiment_dir + 'disc_checkpoint.pth')
 
@@ -155,8 +160,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
 
             # Plots metrics
-            visualize_batch_eval(results_batch, epoch, experiment_dir=experiment_dir, train_test='metrics_batch')
-            visualize_batch_eval(results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
+            visualize_batch_eval(test_results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "

@@ -20,6 +20,7 @@ import time
 import argparse
 import configparser
 import ast
+from _train import train
 
 # Argumment parser for configuration file
 def parse_config(config_file):
@@ -76,6 +77,12 @@ if __name__ == '__main__':
 
 
     '''-------------------------------------- Dataset parameters --------------------------------------'''
+    # if there's an augment parameter, use it, otherwise use 0.0
+    augment = config.getfloat('augment')        # % of data augmentation
+    if augment == None:
+        augment = 0.0
+
+    print('augment ', augment)
     transform=transforms.Compose([transforms.ToTensor(),
                                 transforms.Grayscale(num_output_channels=1),
                                 transforms.Resize(img_size, antialias=True),])
@@ -83,7 +90,7 @@ if __name__ == '__main__':
     # Training dataset
     train_data_dir = config.get('train_data_dir')
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
-                               crop_shape=target_size)
+                               crop_shape=target_size, augment=augment)
     # Validation dataset (optional)
     val_dataset = config.get('val_data_dir')
     val_dataset = MyDataset(val_dataset, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
@@ -148,12 +155,6 @@ if __name__ == '__main__':
 
 
     '''-------------------------------------- Execute Experiment --------------------------------------'''
-    if training_mode == 'epochs':
-        from _train_epochs import train
-        plot_step = plot_step * 2
-    else:
-        from _train import train
-
     # Records time it takes to train the model
     start_time = time.time()
 
