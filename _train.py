@@ -50,6 +50,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
     '''
     step_num = 0
     for epoch in range(n_epochs):
+        gen_loss_batch = []
+        disc_loss_batch = []
      
         print('Epoch: ' + str(epoch))
         gen.train(), disc.train()       # Set the models to training mode
@@ -83,10 +85,10 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             gen_opt.step()
 
             # Stores batch losses
-            tr_disc_losses.append(disc_loss.item())
-            tr_gen_losses.append(gen_loss.item())
+            disc_loss_batch.append(disc_loss.item())
+            gen_loss_batch.append(gen_loss.item())
 
-            # Compute evaluation metrics and adds them to the epoch's results dictionary
+            '''Evaluate metrics on training batch'''
             train_results_e = evaluate(preds, real, metrics, train_results_e, device)
 
             '''Visualizes predictions'''
@@ -98,6 +100,9 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             
             step_num += 1
         
+        # Appends mean batch losses
+        tr_gen_losses.append(np.mean(gen_loss_batch))
+        tr_disc_losses.append(np.mean(disc_loss_batch))
 
 
         '''
@@ -132,8 +137,8 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
         ################## PLOTS AND CHECKPOINTS ##################
         '''
         # Aggregates test losses for the whole epoch (these are lists, so addition means appending)
-        test_gen_losses += test_gen_loss
-        test_disc_losses += test_disc_loss
+        test_gen_losses.append(test_gen_loss)
+        test_disc_losses.append(test_disc_loss)
         # Aggregates test and training metrics for the whole epoch
         for metric in metrics:
             test_results_epoch[metric].append(np.mean(test_results_e[metric]))
@@ -160,7 +165,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
 
             # Plots metrics
-            visualize_batch_eval(test_results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
+            visualize_batch_eval(test_results_epoch, train_results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "

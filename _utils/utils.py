@@ -109,7 +109,7 @@ def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
                 duration=500, loop=0)
 
 
-def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
+def visualize_batch_loss(epoch, experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
                     test_gen_losses=None, test_disc_losses=None, figsize=(20,10)):
         
         # Creates experiment directory if it doesn't exist'
@@ -125,6 +125,7 @@ def visualize_batch_loss(input1, labels, input2, pred, epoch, experiment_dir='ex
             plt.title("Training Loss per Epoch")
             plt.xlabel("Training step")
             plt.ylabel("Loss")
+            plt.legend()
             plt.subplot(1,2,2)
             plt.plot(test_gen_losses, label='Generetor')
             plt.plot(test_disc_losses, label='Discriminator')
@@ -158,6 +159,7 @@ def visualize_batch_eval(test_metrics, train_metrics, epoch, experiment_dir='exp
         axes[i].plot(train_metrics[metric], label='train')
         axes[i].set_title(metric)
         axes[i].set_xlabel('Epoch')
+        axes[i].legend()  # Add this line
 
     # Save the plot to a file
     plt.savefig(f'{experiment_dir}/metrics_{epoch}.png')
@@ -166,12 +168,13 @@ def visualize_batch_eval(test_metrics, train_metrics, epoch, experiment_dir='exp
     plt.show()
     plt.close()
 
-    write_log(test_metrics, experiment_dir)  # Saves test metrics in a csv file
+    write_log(test_metrics, experiment_dir, train_test='test')  # Saves test metrics in a csv file
+    write_log(train_metrics, experiment_dir, train_test='train')  # Saves train metrics in a csv file
 
 
-def write_log(log, experiment_dir):
+def write_log(log, experiment_dir, train_test='test'):
     # Open a new file for writing
-    with open(experiment_dir+'.csv', 'w', newline='') as f:
+    with open(experiment_dir + '_' + train_test + '.csv', 'w', newline='') as f:
         writer = csv.writer(f)
         
         # Write the header row

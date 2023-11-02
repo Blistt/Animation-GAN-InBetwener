@@ -17,13 +17,14 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
     Tests a single epoch
     '''
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    gen_epoch_loss = []
-    disc_epoch_loss = []
     step_num = 0
     display_step = len(dataloader)//display_step
     results_e = defaultdict(list)     # Stores internal metrics for an epoch
     
     for input1, real, input2 in tqdm.tqdm(dataloader):
+        gen_batch_loss = []
+        disc_batch_loss = []
+
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
         '''Get generator loss'''
@@ -41,12 +42,12 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
         # Total discriminator loss
         disc_loss = (disc_fake_loss + disc_real_loss) / 2
         
-        gen_epoch_loss.append(gen_loss.item())
-        disc_epoch_loss.append(disc_loss.item())
+        gen_batch_loss.append(gen_loss.item())
+        disc_batch_loss.append(disc_loss.item())
 
         '''Compute evaluation metrics'''
         if metrics is not None:
-            results_e = evaluate(preds, real, results_e, device)
+            results_e = evaluate(preds, real, metrics, results_e, device)
             
         if step_num % display_step == 0 and epoch % plot_step == 0:
             # Saves torch image with the batch of predicted and real images
@@ -56,5 +57,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
             create_gif(input1, real, input2, preds, experiment_dir, id) # Saves gifs of the predicted and ground truth triplets
 
         step_num += 1
+    
+    gen_epoch_loss = np.mean(gen_batch_loss)
+    disc_epoch_loss = np.mean(disc_batch_loss)
         
     return gen_epoch_loss, disc_epoch_loss, results_e
