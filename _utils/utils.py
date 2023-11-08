@@ -4,14 +4,15 @@ import cv2
 
 import torchvision.transforms as transforms
 import torch.nn.functional as F
-from PIL import Image
+from PIL import Image, ImageDraw
 from torch import nn
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 import os
 import csv
 from _eval.chamfer_dist import batch_edt
-from PIL import ImageChops
+import imageio
+
 
 
 
@@ -109,7 +110,7 @@ def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
                 duration=500, loop=0)
 
 
-def visualize_batch_loss(epoch, experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
+def visualize_batch_loss_gan(experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
                     test_gen_losses=None, test_disc_losses=None, figsize=(20,10)):
         
         # Creates experiment directory if it doesn't exist'
@@ -133,11 +134,39 @@ def visualize_batch_loss(epoch, experiment_dir='exp/', train_gen_losses=None, tr
             plt.xlabel("Testing step")
             plt.ylabel("Loss")
             plt.legend()
-            plt.savefig(experiment_dir + 'loss' + str(epoch) + '.png')
+            plt.savefig(experiment_dir + 'loss_gan.png')
+            plt.close()
+
+
+def visualize_batch_loss_fit(experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
+                    test_gen_losses=None, test_disc_losses=None, figsize=(20,10)):
+        
+        # Creates experiment directory if it doesn't exist'
+        experiment_dir = experiment_dir + 'losses/'
+        if not os.path.exists(experiment_dir): os.makedirs(experiment_dir)
+
+        if train_gen_losses is not None and test_gen_losses is not None:
+            # Plots Generator and Discriminator losses in the same plot
+            plt.figure(figsize=figsize)
+            plt.subplot(1,2,1)
+            plt.plot(train_gen_losses, label='Train')
+            plt.plot(test_gen_losses, label='Test')
+            plt.title("Generator loss")
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+            plt.legend()
+            plt.subplot(1,2,2)
+            plt.plot(test_disc_losses, label='Train')
+            plt.plot(test_disc_losses, label='Test')
+            plt.title("Discriminator loss")
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+            plt.legend()
+            plt.savefig(experiment_dir + 'loss_fit.png')
             plt.close()
         
 
-def visualize_batch_eval(test_metrics, train_metrics, epoch, experiment_dir='exp/', train_test='metrics', size=(20, 20)):
+def visualize_batch_eval(test_metrics, train_metrics, experiment_dir='exp/', train_test='metrics', size=(20, 20)):
 
     # Creates experiment directory if it doesn't exist'
     experiment_dir = experiment_dir + train_test
@@ -159,10 +188,10 @@ def visualize_batch_eval(test_metrics, train_metrics, epoch, experiment_dir='exp
         axes[i].plot(train_metrics[metric], label='train')
         axes[i].set_title(metric)
         axes[i].set_xlabel('Epoch')
-        axes[i].legend()  # Add this line
+        axes[i].legend()
 
     # Save the plot to a file
-    plt.savefig(f'{experiment_dir}/metrics_{epoch}.png')
+    plt.savefig(f'{experiment_dir}/metrics.png')
     
     # Show the plot
     plt.show()
@@ -185,3 +214,39 @@ def write_log(log, experiment_dir, train_test='test'):
         for i in range(len(log['chamfer'])):
             row = [i] + [log[key][i] for key in log]
             writer.writerow(row)
+
+import imageio
+from PIL import Image, ImageDraw
+
+def mark_frame_in_gif(gif_path, frame_index):
+    # Read the GIF
+    gif = imageio.mimread(gif_path)
+
+    # Check if frame_index is valid
+    if frame_index < 0 or frame_index >= len(gif):
+        raise ValueError("frame_index is out of range")
+
+    # Convert specified frame to PIL Image
+    frame = Image.fromarray(gif[frame_index])
+
+    # Create a draw object
+    draw = ImageDraw.Draw(frame)
+
+    # Calculate the position of the cross with 10 pixels padding
+    cross_start_x = (frame.width - 30, 20)
+    cross_end_x = (frame.width - 10, 20)
+    cross_start_y = (frame.width - 20, 10)
+    cross_end_y = (frame.width - 20, 30)
+
+    # Draw the cross
+    draw.line([cross_start_x, cross_end_x], fill='red', width=5)
+    draw.line([cross_start_y, cross_end_y], fill='red', width=5)
+
+    # Convert the frame back to numpy array
+    gif[frame_index] = np.array(frame)
+
+    # Write the new GIF
+    imageio.mimsave(gif_path[:-4] + '_marked.gif', gif, duration=500, loop=0)
+
+    print("Saved marked GIF to", gif_path[:-4] + '_marked.gif')
+

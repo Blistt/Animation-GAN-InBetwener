@@ -6,7 +6,7 @@ from generators._generator_crop import UNetCrop
 from generators._generator_light import GeneratorLight
 from discriminators._discriminator_crop import DiscriminatorCrop
 from discriminators._discriminator_full import DiscriminatorFull
-from _utils.utils import weights_init, visualize_batch_loss, create_gif, visualize_batch_eval
+from _utils.utils import weights_init, visualize_batch_loss_fit, visualize_batch_loss_gan, create_gif, visualize_batch_eval
 from _loss import get_gen_loss
 from _test import test
 import os
@@ -106,7 +106,7 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
 
 
         '''
-        ######################## TESTING ############################
+        ######################## VALIDATION ############################
         '''
         os.makedirs(experiment_dir+'test/', exist_ok=True)
         torch.cuda.empty_cache()    # Free up unused memory before starting testing process
@@ -161,11 +161,13 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
                     print(disc, file=f)
 
             # Plots losses
-            visualize_batch_loss(input1, real, input2, preds, epoch, experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
+            visualize_batch_loss_fit(experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
+                            train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
+            visualize_batch_loss_gan(experiment_dir=experiment_dir, train_gen_losses=tr_gen_losses,
                             train_disc_losses=tr_disc_losses, test_gen_losses=test_gen_losses, test_disc_losses=test_disc_losses)
 
             # Plots metrics
-            visualize_batch_eval(test_results_epoch, train_results_epoch, epoch, experiment_dir=experiment_dir, train_test='metrics')
+            visualize_batch_eval(test_results_epoch, train_results_epoch, experiment_dir=experiment_dir, train_test='metrics')
 
             # Prints losses
             print(f"Epoch {epoch}: Training Gen loss: {tr_gen_losses[-1]} Training Disc loss: {tr_disc_losses[-1]} "

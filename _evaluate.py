@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 def evaluate(preds, real, metrics, results, device):
 
     '''Compute evaluation metrics'''
