@@ -3,8 +3,9 @@ import math
 import cv2
 
 import torchvision.transforms as transforms
+from torchvision.transforms import ToTensor, ToPILImage
 import torch.nn.functional as F
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageSequence
 from torch import nn
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
@@ -43,6 +44,11 @@ def crop(image, new_shape):
         image: image tensor of shape (batch size, channels, height, width)
         new_shape: a torch.Size object with the shape you want x to have
     '''
+
+    # transforms image to torch tensor if it is PIL Image
+    if isinstance(image, Image.Image):
+        image = ToTensor()(image)
+
     padding_y = (image.shape[-2]-new_shape[-2]) // 2
     padding_x = (image.shape[-1]-new_shape[-1]) // 2
     odd_y, odd_x = (image.shape[-2]-new_shape[-2]) % 2, (image.shape[-1]-new_shape[-1]) % 2
@@ -218,7 +224,7 @@ def write_log(log, experiment_dir, train_test='test'):
 import imageio
 from PIL import Image, ImageDraw
 
-def mark_frame_in_gif(gif_path, frame_index):
+def mark_frame_in_gif(gif_path, frame_index=1):
     # Read the GIF
     gif = imageio.mimread(gif_path)
 
@@ -249,4 +255,29 @@ def mark_frame_in_gif(gif_path, frame_index):
     imageio.mimsave(gif_path[:-4] + '_marked.gif', gif, duration=500, loop=0)
 
     print("Saved marked GIF to", gif_path[:-4] + '_marked.gif')
+
+
+def crop_gif(input_path, shape=(373,373)):
+    gif = Image.open(input_path)
+
+    frames = []
+    # Define the CenterCrop transform
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Grayscale(num_output_channels=1),
+        transforms.CenterCrop(shape)
+    ])
+
+    for frame in ImageSequence.Iterator(gif):
+        # Center crop frame to size of shape with torch transforms
+        cropped = transform(frame)
+        cropped = cropped / cropped.max()
+        cropped = transforms.ToPILImage()(cropped)
+        frames.append(cropped)
+    
+    frames[0].save(input_path[:-4] + '_cropped.gif', save_all=True, append_images=frames[1:], 
+                duration=500, loop=0)
+    
+    print('Cropped gif saved at', input_path[:-4] + '_cropped.gif')
+        
 
