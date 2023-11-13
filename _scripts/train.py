@@ -2,25 +2,21 @@ import torch
 from torch import nn
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
-from generators._generator_crop import UNetCrop
-from generators._generator_light import GeneratorLight
-from discriminators._discriminator_crop import DiscriminatorCrop
-from discriminators._discriminator_full import DiscriminatorFull
 from _utils.utils import weights_init, visualize_batch_loss_fit, visualize_batch_loss_gan, create_gif, visualize_batch_eval
-from _loss import get_gen_loss
-from _test import test
+from _support.loss import get_gen_loss
+from _scripts.test import test
 import os
 from torchvision.utils import save_image
 from collections import defaultdict
 import numpy as np
 from _utils.utils import get_edt
-from _evaluate import evaluate
+from _eval.evaluate import evaluate
 
 
 def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1Loss(), lambr1=1.0, 
           r2=None, r3=None, lambr2=None, lambr3=None, n_epochs=10, batch_size=12, device='cuda:0', 
           metrics=None, display_step=4, plot_step=10, val_dataset=None, test_dataset=None, save_checkpoints=True, 
-          disc_extra=2, gen_extra=3, experiment_dir='exp/'):  
+          experiment_dir='exp/'):  
     
     # Prints all function parameters in experiment directory
     with open(experiment_dir + 'parameters.txt', 'w') as f:

@@ -2,12 +2,12 @@ from torch.utils.data import DataLoader
 import tqdm
 from torch import nn
 import torch
-from _loss import get_gen_loss
+from _support.loss import get_gen_loss
 from torchvision.utils import save_image
 from _utils.utils import create_gif, write_log
 from collections import defaultdict
 import numpy as np
-from _evaluate import evaluate
+from _eval.evaluate import evaluate
 
 # testing function
 def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_step=10, r1=nn.BCELoss(), 

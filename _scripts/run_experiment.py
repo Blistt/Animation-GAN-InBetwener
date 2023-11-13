@@ -1,26 +1,28 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import torch
 from torch import nn
 from torchvision import transforms
-from generators._generator_crop import UNetCrop
-from generators._generator_light import GeneratorLight
-from generators._generator_light_spectral import GeneratorLightSpectral
-from discriminators._discriminator_crop import DiscriminatorCrop
-from discriminators._discriminator_full import DiscriminatorFull
-from discriminators._discriminator_full_spectral import DiscriminatorFullSpectral
-from discriminators._discriminator_crop_double import DiscriminatorCropDouble
+from _generators.generator_crop import UNetCrop
+from _generators.generator_light import GeneratorLight
+from _generators.generator_light_spectral import GeneratorLightSpectral
+from _discriminators.discriminator_crop import DiscriminatorCrop
+from _discriminators.discriminator_full import DiscriminatorFull
+from _discriminators.discriminator_full_spectral import DiscriminatorFullSpectral
+from _discriminators.discriminator_crop_double import DiscriminatorCropDouble
 from _utils.utils import weights_init, siren_weights_init
-from _dataset_class import MyDataset
-import os
+from _support.dataset_class import MyDataset
 import torchmetrics
 import _eval.my_metrics as my_metrics
 import _eval.chamfer_dist as chamfer_dist
-from _pre_train import pre_train
-from _loss import GDL, MS_SSIM, EDT_Loss
+from _scripts.pre_train import pre_train
+from _support.loss import GDL, MS_SSIM, EDT_Loss
 import time
 import argparse
 import configparser
 import ast
-from _train import train
+from _scripts.train import train
 
 # Argumment parser for configuration file
 def parse_config(config_file):
@@ -161,8 +163,7 @@ if __name__ == '__main__':
     train(train_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=r1, lambr1=r1_lambda, 
           r2=r2, r3=r3, lambr2=r2_lambda, lambr3=r3_lambda, n_epochs=n_epochs, batch_size=batch_size, 
           device=device, metrics=metrics, display_step=display_step, plot_step=plot_step, val_dataset=val_dataset,
-          test_dataset=test_dataset, save_checkpoints=save_checkpoints, gen_extra=gen_extra, disc_extra=disc_extra,
-          experiment_dir=experiment_dir)
+          test_dataset=test_dataset, save_checkpoints=save_checkpoints, experiment_dir=experiment_dir)
     
     # Saves the time the experiment took in a text file in experiment directory
     with open(experiment_dir + 'time.txt', 'w') as f:

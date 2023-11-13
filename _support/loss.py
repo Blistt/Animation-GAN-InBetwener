@@ -16,7 +16,7 @@ def get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=None, r2=None, r3=None
     gen_recon1 = r1(preds, real)
     gen_loss = (gen_adv_loss * adv_lambda) + (gen_recon1 * lambr1)
 
-    # Adds optional additional losses
+    # Adds optional reconstruction losses
     if r2 is not None:
         gen_recon2 = r2(preds, real)
         gen_loss += gen_recon2 * lambr2
@@ -30,7 +30,7 @@ def pre_train_loss(preds, real, r1, lambr1=1, r2=None, r3=None, lambr2=None, lam
     gen_recon1 = r1(preds, real)
     gen_loss = gen_recon1 * lambr1
 
-    # Adds optional additional losses
+    # Adds optional reconstruction losses
     if r2 is not None:
         gen_recon2 = r2(preds, real)
         gen_loss += gen_recon2 * lambr2
