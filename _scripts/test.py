@@ -20,10 +20,11 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
     step_num = 0
     display_step = len(dataloader)//display_step
     results_e = defaultdict(list)     # Stores internal metrics for an epoch
+    gen_loss_e = []               # Stores generator loss for an epoch
+    disc_loss_e = []              # Stores discriminator loss for an epoch
     
     for input1, real, input2 in tqdm.tqdm(dataloader):
-        gen_batch_loss = []
-        disc_batch_loss = []
+
 
         input1, real, input2 = input1.to(device), real.to(device), input2.to(device)
 
@@ -42,8 +43,8 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
         # Total discriminator loss
         disc_loss = (disc_fake_loss + disc_real_loss) / 2
         
-        gen_batch_loss.append(gen_loss.item())
-        disc_batch_loss.append(disc_loss.item())
+        gen_loss_e.append(gen_loss.item())
+        disc_loss_e.append(disc_loss.item())
 
         '''Compute evaluation metrics'''
         if metrics is not None:
@@ -58,7 +59,7 @@ def test(dataset, gen, disc, adv_l, adv_lambda, epoch, display_step=10, plot_ste
 
         step_num += 1
     
-    gen_epoch_loss = np.mean(gen_batch_loss)
-    disc_epoch_loss = np.mean(disc_batch_loss)
+    gen_epoch_loss = np.mean(gen_loss_e)
+    disc_epoch_loss = np.mean(disc_loss_e)
         
     return gen_epoch_loss, disc_epoch_loss, results_e
