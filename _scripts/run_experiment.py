@@ -5,12 +5,14 @@ import torch
 from torch import nn
 from torchvision import transforms
 from _generators.generator_crop import UNetCrop
+from _generators.generator_padded import UNetPadded
 from _generators.generator_light import GeneratorLight
 from _generators.generator_light_spectral import GeneratorLightSpectral
 from _discriminators.discriminator_crop import DiscriminatorCrop
 from _discriminators.discriminator_full import DiscriminatorFull
 from _discriminators.discriminator_full_spectral import DiscriminatorFullSpectral
 from _discriminators.discriminator_crop_double import DiscriminatorCropDouble
+from _discriminators.discriminator_dense import DiscriminatorDense
 from _utils.utils import weights_init, siren_weights_init
 from _support.dataset_class import MyDataset
 import torchmetrics

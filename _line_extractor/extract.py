@@ -9,6 +9,7 @@ import cv2
 from model import SketchKeras
 import os
 from pathlib import Path
+from matplotlib import pyplot as plt
 
 def preprocess(frame):
     h, w, c = frame.shape
@@ -26,6 +27,7 @@ def postprocess(pred, thresh=0.18, smooth=False):
 
     pred = np.amax(pred, 0)
     pred[pred < thresh] = 0
+    pred[pred >= thresh] = 1
     pred = 1 - pred
     pred *= 255
     pred = np.clip(pred, 0, 255).astype(np.uint8)
@@ -33,7 +35,7 @@ def postprocess(pred, thresh=0.18, smooth=False):
         pred = cv2.medianBlur(pred, 3)
     return pred
 
-def extract(frame, device='cuda:1', model=None):
+def extract(frame, device='cuda:1', model=None, bin_thresh=0.5, smooth=False):
     if model is None:
         model = SketchKeras().to(device)
         model.load_state_dict(torch.load('_line_extractor/weights/model.pth'))
@@ -59,7 +61,7 @@ def extract(frame, device='cuda:1', model=None):
     
     # postprocess
     output = pred.cpu().detach().numpy()
-    output = postprocess(output, thresh=0.18) 
+    output = postprocess(output, thresh=bin_thresh, smooth=smooth) 
     output = output[:new_height, :new_width]
 
     return output
@@ -110,18 +112,54 @@ def extract_from_video(video_path, model=None, device='cuda:1'):
     print('Video saved at {}'.format(output_video_path))
 
 
+def extract_from_dir(input_path, model=None, device='cuda:1', bin_thresh=0.5, smooth=False):
+    if model is None:
+        model = SketchKeras().to(device)
+    
+    # Iterate over all files and directories in the input path
+    for entry in os.scandir(input_path):
+        if entry.is_file():
+            print('extracting from {}'.format(entry.path))
+            frame = cv2.imread(entry.path)
+            line_frame = extract(frame, device=device, model=model, bin_thresh=bin_thresh, smooth=smooth)
+            # save line frame in parent direcotry of input_path using pathlib
+            cv2.imwrite(os.path.join('mini_datasets/to_trace_results', entry.name), line_frame)
+            visualize(frame, line_frame, os.path.join('mini_datasets/to_trace_results_comparison', entry.name))
+        # If entry is a directory, recursively call extract_from_dir
+        elif entry.is_dir():
+            extract_from_dir(entry.path, model=model, device=device)
+
+def visualize(img1, img2, filename):
+    '''
+    Visualizes a pair of compared images
+    '''
+    # Converts image to RGB
+    if img1.ndim == 3:
+        img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+
+    fig = plt.figure(figsize=(20, 10))
+    ax1 = fig.add_subplot(121)
+    ax1.imshow(img1)
+    ax1.set_title('Original image')
+    plt.axis('off')
+    ax2 = fig.add_subplot(122)
+    ax2.imshow(img2, cmap='gray')
+    ax2.set_title('sketchKeras')
+    plt.tight_layout()
+    plt.axis('off')
+    plt.savefig(filename)
+    plt.close()
+
+
 if __name__ == '__main__':
     video_path = '/home/farriaga/gan-interpolator/_notebooks/Horimiya_1_Clip.mp4'
-    device = 'cuda:0'
+    device = 'cuda:1'
     model = SketchKeras().to(device)
     print('working dir', os.getcwd())
     model.load_state_dict(torch.load('_line_extractor/weights/model.pth'))
     print('weights/model.pth loaded')
-    extract_from_video(video_path, model, device)
+    extract_from_dir('mini_datasets/to_trace', model=model, device=device, bin_thresh=0.25, smooth=False)
 
-    
-    
-    
-    
+ 
 
 

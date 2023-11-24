@@ -162,7 +162,7 @@ def visualize_batch_loss_fit(experiment_dir='exp/', train_gen_losses=None, train
             plt.ylabel("Loss")
             plt.legend()
             plt.subplot(1,2,2)
-            plt.plot(test_disc_losses, label='Train')
+            plt.plot(train_disc_losses, label='Train')
             plt.plot(test_disc_losses, label='Test')
             plt.title("Discriminator loss")
             plt.xlabel("Epoch")

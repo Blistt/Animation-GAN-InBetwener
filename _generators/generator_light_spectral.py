@@ -49,5 +49,4 @@ class GeneratorLightSpectral(nn.Module):
         
         out_down = self.down_sample_blocks(out)
         out_up = self.up_sample_block(out_down)
-        
         return out_up
