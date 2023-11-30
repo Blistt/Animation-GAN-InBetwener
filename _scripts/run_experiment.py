@@ -6,6 +6,7 @@ from torch import nn
 from torchvision import transforms
 from _generators.generator_crop import UNetCrop
 from _generators.generator_padded import UNetPadded
+from _generators.generator_padded_medium import UNetMedium
 from _generators.generator_light import GeneratorLight
 from _generators.generator_light_spectral import GeneratorLightSpectral
 from _discriminators.discriminator_crop import DiscriminatorCrop

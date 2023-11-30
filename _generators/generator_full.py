@@ -3,12 +3,6 @@ from torch import nn
 from _utils.utils import crop
 
 class ContractingBlock(nn.Module):
-    '''
-    ContractingBlock Class
-    Performs two convolutions followed by a max pool operation.
-    Values:
-        input_channels: the number of channels to expect from a given input
-    '''
     def __init__(self, input_channels, use_dropout=False, use_bn=True):
         super(ContractingBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels * 2, kernel_size=3, padding=1)
@@ -23,12 +17,6 @@ class ContractingBlock(nn.Module):
         self.use_dropout = use_dropout
 
     def forward(self, x):
-        '''
-        Function for completing a forward pass of ContractingBlock:
-        Given an image tensor, completes a contracting block and returns the transformed tensor.
-        Parameters:
-            x: image tensor of shape (batch size, channels, height, width)
-        '''
         x = self.conv1(x)
         if self.use_bn:
             x = self.batchnorm(x)
@@ -45,13 +33,6 @@ class ContractingBlock(nn.Module):
         return x
 
 class ExpandingBlock(nn.Module):
-    '''
-    ExpandingBlock Class:
-    Performs an upsampling, a convolution, a concatenation of its two inputs,
-    followed by two more convolutions with optional dropout
-    Values:
-        input_channels: the number of channels to expect from a given input
-    '''
     def __init__(self, input_channels, use_dropout=False, use_bn=True):
         super(ExpandingBlock, self).__init__()
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
@@ -67,14 +48,6 @@ class ExpandingBlock(nn.Module):
         self.use_dropout = use_dropout
 
     def forward(self, x, skip_con_x):
-        '''
-        Function for completing a forward pass of ExpandingBlock:
-        Given an image tensor, completes an expanding block and returns the transformed tensor.
-        Parameters:
-            x: image tensor of shape (batch size, channels, height, width)
-            skip_con_x: the image tensor from the contracting path (from the opposing block of x)
-                    for the skip connection
-        '''
         x = self.upsample(x)
         x = self.conv1(x)
         skip_con_x = crop(skip_con_x, x.shape)
@@ -94,26 +67,11 @@ class ExpandingBlock(nn.Module):
         return x
 
 class FeatureMapBlock(nn.Module):
-    '''
-    FeatureMapBlock Class
-    The final layer of a U-Net -
-    maps each pixel to a pixel with the correct number of output dimensions
-    using a 1x1 convolution.
-    Values:
-        input_channels: the number of channels to expect from a given input
-        output_channels: the number of channels to expect for a given output
-    '''
     def __init__(self, input_channels, output_channels):
         super(FeatureMapBlock, self).__init__()
         self.conv = nn.Conv2d(input_channels, output_channels, kernel_size=1)
 
     def forward(self, i1, i2=None):
-        '''
-        Function for completing a forward pass of FeatureMapBlock:
-        Given an image tensor, returns it mapped to the desired number of channels.
-        Parameters:
-            i1 or (i1 & i2): image tensors of shape (batch size, channels, height, width)
-        '''
         if i2 is not None:
           x = self.conv(torch.cat((i1, i2), dim=1))
         else:
@@ -122,15 +80,6 @@ class FeatureMapBlock(nn.Module):
 
 
 class UNetFull(nn.Module):
-    '''
-    UNet Class
-    A series of 4 contracting blocks followed by 4 expanding blocks to
-    transform an input image into the corresponding paired image, with an upfeature
-    layer at the start and a downfeature layer at the end.
-    Values:
-        input_channels: the number of channels to expect from a given input
-        output_channels: the number of channels to expect for a given output
-    '''
     def __init__(self, input_channels, output_channels, hidden_channels=32, use_dropout=False, use_bn=False):
         super(UNetFull, self).__init__()
         self.upfeature = FeatureMapBlock(input_channels, hidden_channels)
@@ -150,12 +99,6 @@ class UNetFull(nn.Module):
         self.activation = torch.nn.Tanh()
 
     def forward(self, i1, i2):
-        '''
-        Function for completing a forward pass of UNet:
-        Given an image tensor, passes it through U-Net and returns the output.
-        Parameters:
-            x: image tensor of shape (batch size, channels, height, width)
-        '''
         x0 = self.upfeature(i1, i2)
         x1 = self.contract1(x0)
         x2 = self.contract2(x1)

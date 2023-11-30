@@ -5,18 +5,18 @@ from _utils.utils import crop
 class ContractingBlock(nn.Module):
     def __init__(self, input_channels):
         super(ContractingBlock, self).__init__()
-        self.conv1 = nn.Conv2d(input_channels, input_channels*2, kernel_size=3, padding=1, bias=False)
-        self.conv2 = nn.Conv2d(input_channels*2, input_channels*2, kernel_size=3, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(input_channels, input_channels*2, kernel_size=4, stride=2, padding=1, bias=False)
+        # self.conv2 = nn.Conv2d(input_channels*2, input_channels*2, kernel_size=3, padding=1, bias=False)
         self.activation = nn.ReLU()
-        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.activation(x)
-        x = self.conv2(x)
-        x = self.activation(x)
-        x = self.maxpool(x)
+        # x = self.conv2(x)
+        # x = self.activation(x)
+        # x = self.maxpool(x)
         return x
 
 
@@ -25,18 +25,18 @@ class ExpandingBlock(nn.Module):
         super(ExpandingBlock, self).__init__()
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.conv1 = nn.Conv2d(input_channels, input_channels//2, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv2 = nn.Conv2d(input_channels, input_channels//2, kernel_size=3, stride=1, padding=1, bias=False)
-        self.conv3 = nn.Conv2d(input_channels//2, input_channels//2, kernel_size=3, stride=1,padding=1, bias=False)
+        # self.conv2 = nn.Conv2d(input_channels, input_channels//2, kernel_size=3, stride=1, padding=1, bias=False)
+        # self.conv3 = nn.Conv2d(input_channels//2, input_channels//2, kernel_size=3, stride=1,padding=1, bias=False)
         self.activation = nn.ReLU()
 
     def forward(self, x, skip_con_x):
         x = self.upsample(x)
         x = self.conv1(x)
-        skip_con_x = crop(skip_con_x, x.shape)
-        x = torch.cat([x, skip_con_x], axis=1)
-        x = self.conv2(x)
-        x = self.activation(x)
-        x = self.conv3(x)
+        # skip_con_x = crop(skip_con_x, x.shape)
+        # x = torch.cat([x, skip_con_x], axis=1)
+        # x = self.conv2(x)
+        # x = self.activation(x)
+        # x = self.conv3(x)
         x = self.activation(x)
         return x
 
@@ -57,11 +57,11 @@ class FeatureMapBlock(nn.Module):
 """
 Whole Model
 """
-class UNetPadded(nn.Module):
+class UNetMedium(nn.Module):
     def __init__(self, input_channels, output_channels=1, hidden_channels=64):
-        super(UNetPadded, self).__init__()
+        super(UNetMedium, self).__init__()
         # "Every step in the expanding path consists of an upsampling of the feature map"
-        print('Using UNetPadded')
+        print('Using UNetCrop')
         self.upfeature = FeatureMapBlock(input_channels, hidden_channels)
         self.contract1 = ContractingBlock(hidden_channels)
         self.contract2 = ContractingBlock(hidden_channels * 2)
