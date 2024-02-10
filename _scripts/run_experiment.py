@@ -96,7 +96,7 @@ if __name__ == '__main__':
     train_data_dir = config.get('train_data_dir')
     train_dataset = MyDataset(train_data_dir, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                                crop_shape=target_size, augment=augment)
-    # Validation dataset (optional)
+    # Validation dataset 
     val_dataset = config.get('val_data_dir')
     val_dataset = MyDataset(val_dataset, transform=transform, resize_to=img_size, binarize_at=binary_threshold,
                              crop_shape=target_size)

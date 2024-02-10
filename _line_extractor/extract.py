@@ -68,10 +68,10 @@ def extract(frame, device='cuda:1', model=None, bin_thresh=0.5, smooth=False):
 
 
 def extract_from_video(video_path, model=None, device='cuda:1'):
-    if model is None:
-        model = SketchKeras().to(device)
-        model.load_state_dict(torch.load('_line_extractor/weights/model.pth'))
-        print('_line_extractor/weights/model.pth loaded')
+    # if model is None:
+    #     model = SketchKeras().to(device)
+    #     model.load_state_dict(torch.load('_line_extractor/weights/model.pth'))
+    #     print('_line_extractor/weights/model.pth loaded')
 
     line_frames = []
     # Read in the video
@@ -90,6 +90,7 @@ def extract_from_video(video_path, model=None, device='cuda:1'):
     while success:
         success, frame = vidcap.read()
         if success:
+            frame = cv2.resize(frame, (512, 288))
             line_frame = extract(frame, device=device, model=model)
             shape = line_frame.shape
             if count % 100 == 0:
@@ -153,12 +154,13 @@ def visualize(img1, img2, filename):
 
 if __name__ == '__main__':
     video_path = '/home/farriaga/gan-interpolator/_notebooks/Horimiya_1_Clip.mp4'
-    device = 'cuda:1'
+    device = 'cuda:0'
     model = SketchKeras().to(device)
     print('working dir', os.getcwd())
-    model.load_state_dict(torch.load('_line_extractor/weights/model.pth'))
+    model.load_state_dict(torch.load('_line_extractor/weights/model.pth', map_location=torch.device('cpu')))
     print('weights/model.pth loaded')
-    extract_from_dir('mini_datasets/to_trace', model=model, device=device, bin_thresh=0.25, smooth=False)
+    extract_from_video('/home/farriaga/gan-interpolator/_notebooks/shigatsu.mp4',
+                       device=device, model=model)
 
  
 

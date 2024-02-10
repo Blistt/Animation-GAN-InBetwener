@@ -15,9 +15,6 @@ from _eval.chamfer_dist import batch_edt
 import imageio
 
 
-
-
-
 def get_edt(imgs, exp_factor=540/25, binarize_at=0.5, bit_reverse=True, device='cuda:0'):
     # Transfer tensors to other device to avoid issues with memory leak
     other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
