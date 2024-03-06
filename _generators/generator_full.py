@@ -114,4 +114,3 @@ class UNetFull(nn.Module):
         x12 = self.expand5(x11, x0)
         xn = self.downfeature(x12)
         return self.activation(xn)
-        # return xn

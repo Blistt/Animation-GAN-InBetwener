@@ -74,7 +74,6 @@ def train(tra_dataset, gen, disc, gen_opt, disc_opt, adv_l, adv_lambda, r1=nn.L1
             '''Train generator'''
             gen_opt.zero_grad()
             preds = gen(input1, input2)
-
             gen_loss = get_gen_loss(preds, disc, real, adv_l, adv_lambda, r1=r1, r2=r2, r3=r3, 
                                     lambr1=lambr1, lambr2=lambr2, lambr3=lambr3, device=device)
             gen_loss.backward()

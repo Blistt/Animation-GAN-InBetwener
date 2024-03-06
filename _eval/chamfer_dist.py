@@ -1,3 +1,8 @@
+'''
+Chamfer distance implementation directly extracted from -https://github.com/ShuhongChen/eisai-anime-interpolator
+'''
+
+
 import torch
 import torchmetrics
 import cupy

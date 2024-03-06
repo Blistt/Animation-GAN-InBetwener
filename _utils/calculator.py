@@ -76,9 +76,9 @@ def cal_ssim_img(img1, img2):
 
     
 def gaussian_filter(input, win):
-    r""" Blur input with 1-D kernel
+    """ Blur input with 1-D kernel
     Args:
-        input (torch.Tensor): a batch of tensors to be blured
+        input (torch.Tensor): a batch of tensors to be blurred
         window (torch.Tensor): 1-D gauss kernel
     Returns:
         torch.Tensor: blured tensors
@@ -90,7 +90,7 @@ def gaussian_filter(input, win):
 
 
 def _fspecial_gauss_1d(size, sigma):
-    r"""Create 1-D gauss kernel
+    """Create 1-D gauss kernel
     Args:
         size (int): the size of gauss kernel
         sigma (float): sigma of normal distribution

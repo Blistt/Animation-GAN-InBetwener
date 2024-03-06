@@ -1,5 +1,8 @@
+'''
+Metric implementations originally written by ShuhongChen - https://github.com/ShuhongChen/eisai-anime-interpolator
+'''
+
 import torch
-from torch import nn
 import torchmetrics
 import skimage
 import kornia
@@ -60,6 +63,7 @@ class PSNRMetric(torchmetrics.Metric):
         return
     def compute(self):
         return self.running_sum.float() / self.running_count
+    
 class PSNRMetricCPU(torchmetrics.Metric):
     full_state_update=False
     def __init__(self, **kwargs):
