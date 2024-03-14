@@ -14,7 +14,19 @@ Traditional 2D animation remains a largely manual process where each frame in a 
 Description of the requirements (both the manual and automatic installation)
 
 ## Generate frames
-Description of how to generate frames, with an image explaining this.
+To generate an in-between frame given a pair of end-frames, download the generator model's [checkpoints](https://drive.google.com/file/d/1HNBLPgWxvDbKNrPAua-SUQVr7d-zQgRl/view?usp=sharing), and save them in the `checkpoints/` directory. Then, run the following command:
+```bash
+python scripts/generate.py
+```
+This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet. To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
+
+### Frame triplets (with ground_truth in-betweens)
+To test the generation of a known in-between frame, run the following command:
+```bash
+python scrips/generate.py 'gt'
+```
+This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet, as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generation with the ground-truth is also provided, in order to help visualize generation errors better.
+
 
 ## Generate a video
 Description of how to generate a video, along with a gif of a video (maybe?)
