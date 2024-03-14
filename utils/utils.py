@@ -68,13 +68,6 @@ def siren_weights_init(m):
         c = 1 / math.sqrt(n_in) * math.sqrt(6 / (n_in + n_units))
         nn.init.uniform_(m.weight, -c, c)
 
-# def weights_init(m):
-#     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
-#         nn.init.normal_(m.weight, 0.0, 0.02)
-#     if isinstance(m, nn.BatchNorm2d):
-#         nn.init.normal_(m.weight, 0.0, 0.02)
-#         nn.init.constant_(m.bias, 0)
-
 
 def show_tensor_images(image_tensor, num_images=16):
     '''
@@ -87,7 +80,7 @@ def show_tensor_images(image_tensor, num_images=16):
     plt.imshow(image_grid.permute(1, 2, 0).squeeze())
 
 
-def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
+def create_gif(input1, labels, input2, pred, experiment_dir, epoch, stand_alone=False):
 
     # Splits pred image into RGB channels
     pred_label = pred.repeat(1, 3, 1, 1).reshape(pred.shape[0], 3, pred.shape[2], pred.shape[3])
@@ -105,12 +98,13 @@ def create_gif(input1, labels, input2, pred, experiment_dir, epoch):
     # Gif for generated triplet
     input1.save(experiment_dir + 'triplet_' + str(epoch) + '_true.gif', save_all=True, append_images=[labels, input2], 
                 duration=500, loop=0)
-    # Gif for ground truth triplet
-    input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred.gif', save_all=True, append_images=[pred, input2], 
-                duration=500, loop=0)
-    # Gif for generated triplet with label
-    input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred_label.gif', save_all=True, append_images=[pred_label, input2],
-                duration=500, loop=0)
+    if stand_alone==False:
+        # Gif for ground truth triplet
+        input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred.gif', save_all=True, append_images=[pred, input2], 
+                    duration=500, loop=0)
+        # Gif for generated triplet with label
+        input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred_label.gif', save_all=True, append_images=[pred_label, input2],
+                    duration=500, loop=0)
 
 
 def visualize_batch_loss_gan(experiment_dir='exp/', train_gen_losses=None, train_disc_losses=None,
