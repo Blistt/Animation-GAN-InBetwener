@@ -8,7 +8,7 @@ from generators.generator_crop import UNetCrop
 from generators.generator_padded import UNetPadded
 from generators.generator_light import GeneratorLight
 from discriminators.discriminator_dense import DiscriminatorDense
-from utils.utils import weights_init, siren_weights_init
+from utils.utils import weights_init
 from support.dataset_class import MyDataset
 import torchmetrics
 import eval.my_metrics as my_metrics
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     
 
     '''-------------------------------------- Evaluation Metrics --------------------------------------'''
-    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
+    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
