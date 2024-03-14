@@ -80,7 +80,7 @@ def show_tensor_images(image_tensor, num_images=16):
     plt.imshow(image_grid.permute(1, 2, 0).squeeze())
 
 
-def create_gif(input1, labels, input2, pred, experiment_dir, epoch, stand_alone=False):
+def create_gif(input1, labels, input2, pred, experiment_dir, epoch, gt=True):
 
     # Splits pred image into RGB channels
     pred_label = pred.repeat(1, 3, 1, 1).reshape(pred.shape[0], 3, pred.shape[2], pred.shape[3])
@@ -96,11 +96,11 @@ def create_gif(input1, labels, input2, pred, experiment_dir, epoch, stand_alone=
     pred_label = Image.fromarray((pred_label[0].detach().cpu().permute(1, 2, 0).numpy() * 255).astype('uint8'))
   
     # Gif for generated triplet
-    input1.save(experiment_dir + 'triplet_' + str(epoch) + '_true.gif', save_all=True, append_images=[labels, input2], 
+    input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred.gif', save_all=True, append_images=[pred, input2], 
                 duration=500, loop=0)
-    if stand_alone==False:
+    if gt==True:
         # Gif for ground truth triplet
-        input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred.gif', save_all=True, append_images=[pred, input2], 
+        input1.save(experiment_dir + 'triplet_' + str(epoch) + '_true.gif', save_all=True, append_images=[labels, input2], 
                     duration=500, loop=0)
         # Gif for generated triplet with label
         input1.save(experiment_dir + 'triplet_' + str(epoch) + '_pred_label.gif', save_all=True, append_images=[pred_label, input2],

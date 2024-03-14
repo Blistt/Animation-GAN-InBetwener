@@ -102,10 +102,7 @@ if __name__ == '__main__':
     
 
     '''-------------------------------------- Evaluation Metrics --------------------------------------'''
-    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda:0'
-    # if cuda is not available, use cpu
-    if torch.cuda.is_available():
-        other_device = 'cpu'
+    other_device = 'cuda:1' if device == 'cuda:0' else 'cuda'
     metrics = torchmetrics.MetricCollection({
         'psnr': my_metrics.PSNRMetricCPU(),
         'ssim': my_metrics.SSIMMetricCPU(),
