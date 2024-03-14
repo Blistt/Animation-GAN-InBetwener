@@ -37,11 +37,6 @@ def generate(model, checkpoint_path, input_triplet_path, binary_thresh=0.0, crop
     frame2 = (frame2 > 0.75).float()
     frame3 = (frame3 > 0.75).float()
 
-    # Save frames 1, 2, and 3
-    save_image(frame1, save_path + '/frame1.png')
-    save_image(frame2, save_path + '/frame2.png')
-    save_image(frame3, save_path + '/frame3.png')
-
     # Loads a model from a checkpoint
     model.load_state_dict(torch.load(checkpoint_path))
     model.eval()
