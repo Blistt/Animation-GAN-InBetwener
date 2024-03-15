@@ -20,7 +20,7 @@ python scripts/generate.py
 ```
 This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet (sequence of 3 frames - the 2 end-frames + the in-between frame). To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
 
-### Frame triplets (with ground_truth in-betweens)
+### Frame triplets (with ground truth in-betweens)
 To test the generation of a known in-between frame, run the following command:
 ```bash
 python scrips/generate.py 'gt'
