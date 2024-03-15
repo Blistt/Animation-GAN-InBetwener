@@ -41,6 +41,6 @@ To train the system, run the following command:
 ```bash
 scripts/run_experiment.py --config experiment_configs/default.ini
 ```
-This action will perform training from scratch with the parameters optimized by the authors of this repository by default. Feel free to modify the `experiment_configs/default.ini` file to modify the trainig parameters, as well as visualization and evaluation configurations. The `scripts/run_experiment.py` file contains commented explanations of what each parameter does. For example, the `pretrain` parameter allows you to start training with the model's fully trained weights, which is convenient for fine-tuning to your own dataset.
+This action will perform training from scratch with the parameters optimized by the authors of this repository as default. Feel free to modify the `experiment_configs/default.ini` file to modify the trainig parameters, as well as visualization and evaluation configurations. The `scripts/run_experiment.py` file contains commented explanations of what each parameter does. For example, the `pretrain` parameter allows you to start training with the model's fully trained weights, which is convenient for fine-tuning to your own dataset.
 
 
