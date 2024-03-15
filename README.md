@@ -18,7 +18,7 @@ To generate an in-between frame given a pair of end-frames, download the generat
 ```bash
 python scripts/generate.py
 ```
-This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet. To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
+This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet (sequence of 3 frames - the 2 end-frames + the in-between frame). To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
 
 ### Frame triplets (with ground_truth in-betweens)
 To test the generation of a known in-between frame, run the following command:
