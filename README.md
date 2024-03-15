@@ -25,7 +25,7 @@ To test the generation of a known in-between frame, run the following command:
 ```bash
 python scrips/generate.py 'gt'
 ```
-This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet, as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generation with the ground-truth is also provided, in order to help visualize generation errors better.
+This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet (with the generated in-between), as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generation with the ground-truth is also provided, in order to help visualize generation errors better.
 
 
 ## Generate a video
