@@ -6,7 +6,7 @@ implementation of sketchKeras (https://github.com/higumax/sketchKeras-pytorch)
 import numpy as np
 import torch
 import cv2
-from model import SketchKeras
+from .model import SketchKeras
 import os
 from pathlib import Path
 from matplotlib import pyplot as plt
@@ -92,22 +92,15 @@ def extract_from_video(video_path, model=None, device='cuda:1'):
         if success:
             frame = cv2.resize(frame, (512, 288))
             line_frame = extract(frame, device=device, model=model)
-            shape = line_frame.shape
-            if count % 100 == 0:
-                print('save sample frame')
-                cv2.imwrite('_line_extractor/frame%d.png' % count, line_frame)
             line_frames.append(line_frame)
-            print('frame {} extracted'.format(count))
         count += 1
     
     # create video with the same frame rate as input video
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    output_video_path = Path(video_path).stem + '_line.mp4'
-    print('passed shape', shape)
+    output_video_path = f'{video_path[:-4]}_line.mp4'
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (512, 288))
     for frame in line_frames:
         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-        print(frame.shape)
         out.write(frame)
     out.release()
     print('Video saved at {}'.format(output_video_path))
@@ -152,15 +145,14 @@ def visualize(img1, img2, filename):
     plt.close()
 
 
-if __name__ == '__main__':
-    video_path = '/home/farriaga/gan-interpolator/_notebooks/Horimiya_1_Clip.mp4'
-    device = 'cuda:0'
-    model = SketchKeras().to(device)
-    print('working dir', os.getcwd())
-    model.load_state_dict(torch.load('_line_extractor/weights/model.pth', map_location=torch.device('cpu')))
-    print('weights/model.pth loaded')
-    extract_from_video('/home/farriaga/gan-interpolator/_notebooks/shigatsu.mp4',
-                       device=device, model=model)
+# if __name__ == '__main__':
+#     # print parent of current working directory with pathlib
+#     video_path = f'{str(Path.cwd())}/to_generate/video/video.mp4'
+#     device = 'cuda'
+#     model = SketchKeras().to(device)
+#     model.load_state_dict(torch.load('line_extractor/weights/model.pth', map_location=torch.device('cpu')))
+#     print('weights/model.pth loaded')
+#     extract_from_video(video_path, device=device, model=model)
 
  
 
