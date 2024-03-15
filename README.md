@@ -33,7 +33,7 @@ To add generated frames to a video, run the following command:
 ```bash
 python scripts/generate_from_vid.py
 ```
-This action will produce a video with the same frame-rate as the input video, but replacing duplicate frames in the input video with generated frames (traditional 2D animation commonly produces videos with at least 50% duplicated frames to save costs). 
+This action will first extract the line-art from an animated video (in-between frames are usually produced as uncolored drawings), then produce a video with the same frame-rate as the input video, but replacing duplicate frames in the input video with generated frames (traditional 2D animation commonly produces videos with at least 50% duplicated frames to save costs). 
 
 
 ## Train system
