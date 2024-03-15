@@ -125,7 +125,7 @@ def generate_video(path, model, thresh=[0.65, 0.97], normalize=True, double_fps=
 if __name__ == '__main__':
 
     # Extract line work from video
-    video = 'video.mp4'
+    video = 'video_dup.mp4'
     path = f'{str(Path.cwd())}/to_generate/video/'
     video_path = f'{path}{video}'
     device = 'cuda'
@@ -167,6 +167,11 @@ if __name__ == '__main__':
 #         # If the frame counter is even, write the previous frame to the output video
 #         if frame_counter % 2 == 0:
 #             output_video.write(prev_frame)
+#         # generate random variable with 50% of being true
+#         elif np.random.rand() > 0.5:
+#             # Otherwise, write the previous frame to the output video
+#             output_video.write(prev_frame)
+        
 #         else:
 #             # Otherwise, write the current frame to the output video and update the previous frame
 #             output_video.write(frame)
