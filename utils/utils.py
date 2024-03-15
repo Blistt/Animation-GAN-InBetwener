@@ -56,6 +56,7 @@ def crop(image, new_shape):
       cropped_image = image[:, padding_y+odd_y:image.shape[-2]-padding_y, padding_x+odd_x:image.shape[-1]-padding_x]
     return cropped_image
 
+
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         nn.init.xavier_uniform_(m.weight)
@@ -215,6 +216,7 @@ def write_log(log, experiment_dir, train_test='test'):
 import imageio
 from PIL import Image, ImageDraw
 
+
 def mark_frame_in_gif(gif_path, frame_index=1):
     # Read the GIF
     gif = imageio.mimread(gif_path)
@@ -270,5 +272,3 @@ def crop_gif(input_path, shape=(373,373)):
                 duration=500, loop=0)
     
     print('Cropped gif saved at', input_path[:-4] + '_cropped.gif')
-        
-
