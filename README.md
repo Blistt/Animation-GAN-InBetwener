@@ -7,7 +7,7 @@ INSERT HORIMIYA GIF
 
 **TL;DR**
 
-Traditional 2D animation remains a largely manual process where each frame in a video is hand-drawn, as no robust algorithmic solutions exist to assist in this process. This project introduces a system that generates intermediate frames in an uncolored 2D animated video sequence using Generative Adversarial Networks (GAN), a relatively inexpensive deep learning approach widely used for tasks within the creative realm. We treat the task as a frame interpolation problem, and show that adding a GAN dynamic to a system significantly improves the perceptual fidelity of the generated images, as measured by perceptual oriented metrics that aim to capture human judgment of image quality. Moreover, this thesis proposes a simple end-to-end training framework that avoids domain transferability issues that arise when leveraging components pre-trained on natural video. Lastly, we show that the two main challenges for frame interpolation in this domain, large motion and information sparsity, interact such that the magnitude of objects' motion across frames conditions the appearance of artifacts associated with information sparsity.
+Traditional 2D animation remains a largely manual process where each frame in a video is hand-drawn, as no robust algorithmic solutions exist to assist in this process. This project introduces a system that generates intermediate frames in an uncolored 2D animated video sequence using Generative Adversarial Networks (GAN), a relatively inexpensive deep learning approach widely used for tasks within the creative realm. We treat the task as a frame interpolation problem, and show that adding a GAN dynamic to a system significantly improves the perceptual fidelity of the generated images, as measured by perceptual metrics that aim to capture human judgment of image quality. Moreover, this thesis proposes a simple end-to-end training framework that avoids domain transferability issues that arise when leveraging components pre-trained on natural video. Lastly, we show that the two main challenges for frame interpolation in this domain, large motion and information sparsity, interact such that the magnitude of objects' motion across frames conditions the appearance of artifacts associated with information sparsity.
 
 
 ## Requirements
@@ -18,14 +18,14 @@ To generate an in-between frame given a pair of end-frames, download the generat
 ```bash
 python scripts/generate.py
 ```
-This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet. To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
+This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet (sequence of 3 frames - the 2 end-frames + the in-between frame). To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
 
-### Frame triplets (with ground_truth in-betweens)
+### Frame triplets (with ground truth in-betweens)
 To test the generation of a known in-between frame, run the following command:
 ```bash
 python scrips/generate.py 'gt'
 ```
-This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet, as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generation with the ground-truth is also provided, in order to help visualize generation errors better.
+This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet (with the generated in-between), as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generated frame with the real frame is also provided, in order to help visualize generation errors.
 
 
 ## Generate a video
