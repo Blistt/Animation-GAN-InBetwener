@@ -125,7 +125,7 @@ def generate_video(path, model, thresh=[0.65, 0.97], normalize=True, double_fps=
 if __name__ == '__main__':
 
     # Extract line work from video
-    video = 'video_dup.mp4'
+    video = 'video.mp4'
     path = f'{str(Path.cwd())}/to_generate/video/'
     video_path = f'{path}{video}'
     device = 'cuda'
