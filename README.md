@@ -29,7 +29,18 @@ This action will generate an intermediate frame for a provided triplet and save 
 
 
 ## Generate a video
-Description of how to generate a video, along with a gif of a video (maybe?)
+To add generated frames to a video, run the following command:
+```bash
+python scripts/generate_from_vid.py
+```
+This action will first extract the line-art from an animated video (in-between frames are usually produced as uncolored drawings), then produce a video with the same frame-rate as the input video, but replacing duplicate frames in the input video with generated frames (traditional 2D animation commonly produces videos with at least 50% duplicated frames to save costs). 
+
 
 ## Train system
-Description of how to train a system
+To train the system, run the following command:
+```bash
+scripts/run_experiment.py --config experiment_configs/default.ini
+```
+This action will perform training from scratch with the parameters optimized by the authors of this repository as default. Feel free to modify the `experiment_configs/default.ini` file to modify the trainig parameters, as well as visualization and evaluation configurations. The `scripts/run_experiment.py` file contains commented explanations of what each parameter does. For example, the `pretrain` parameter allows you to start training with the model's fully trained weights, which is convenient for fine-tuning to your own dataset.
+
+

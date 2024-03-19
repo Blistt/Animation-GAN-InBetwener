@@ -40,7 +40,7 @@ if __name__ == '__main__':
     device = config.get('device')                               # Device to use for training
 
     ''' -------------------------------------- Loss function parameters --------------------------------------'''
-    adv_l = eval(config.get('adv_l'))                           # Adversarial loss
+    adv_l = eval(config.get('adv_l'))                           #cpy Adversarial loss
     r1 = eval(config.get('r1'))                                 # Reconstruction loss 1
     r2 = eval(config.get('r2'))                                 # Reconstruction loss 2
     r3 = eval(config.get('r3'))                                 # Reconstruction loss 3

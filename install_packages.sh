@@ -1,12 +1,12 @@
-conda install numpy
-conda install scipy
-conda install -c conda-forge matplotlib
-conda install -c conda-forge scikit-image
-conda install -c conda-forge opencv
-
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install torchmetrics
+pip install opencv-python
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install numpy
+pip install scipy
+pip install matplotlib
+pip install scikit-image
 pip install cupy
+pip install torchmetrics
 pip install kornia
 pip install Pillow
 pip install tqdm
+
