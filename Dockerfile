@@ -13,7 +13,10 @@ ENV TZ=America/Chicago
 RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libpng-dev \
-    python3-opencv
+    python3-opencv \
+    libgl1-mesa-glx \
+    libegl1 \
+    bash
 
 # Install Miniconda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
