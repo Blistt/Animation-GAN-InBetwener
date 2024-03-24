@@ -58,6 +58,7 @@ def generate(model, checkpoint_path, input_triplet_path, binary_thresh=0.0, crop
     if save_path:
         save_image(in_between, pathlib.Path(save_path) / (filename + '.png'))
         create_gif(frame1, frame2, frame3, in_between, save_path + '/' + filename, 0, gt=gt)
+        print('Generated image saved at:', pathlib.Path(save_path))
 
     return in_between
 
