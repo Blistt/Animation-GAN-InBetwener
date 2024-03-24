@@ -13,4 +13,4 @@ HOST_DIRECTORY="/home/farriaga/gan-interpolator/"
 CONTAINER_DIRECTORY="/app"
 
 # Run the Docker container with a bind mount and GPU support
-docker run -it --name $CONTAINER_NAME -v $HOST_DIRECTORY:$CONTAINER_DIRECTORY $IMAGE_NAME /bin/bash
+docker run -it --gpus all --name $CONTAINER_NAME -v $HOST_DIRECTORY:$CONTAINER_DIRECTORY $IMAGE_NAME /bin/bash

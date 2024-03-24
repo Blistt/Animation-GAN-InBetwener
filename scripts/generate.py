@@ -6,12 +6,12 @@ import pathlib
 import sys
 sys.path.insert(0, str(pathlib.Path.cwd())) if str(pathlib.Path.cwd()) not in sys.path else None
 import torch
-from PIL import Image
 from torchvision import transforms
 from generators.generator_padded import UNetPadded
 from matplotlib import pyplot as plt
 from torchvision.utils import save_image
 from utils.utils import create_gif
+from PIL import Image
 
 
 def generate(model, checkpoint_path, input_triplet_path, binary_thresh=0.0, crop_shape=None, 
