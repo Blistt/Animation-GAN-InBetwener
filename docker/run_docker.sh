@@ -12,8 +12,6 @@ HOST_DIRECTORY="/home/farriaga/gan-interpolator/"
 # Container directory (path where you want to mount your repository in the container)
 CONTAINER_DIRECTORY="/app"
 
-# Pull the Docker image
-docker pull $IMAGE_NAME
-
-# Run the Docker container with a bind mount
-docker run -it --name $CONTAINER_NAME -v $HOST_DIRECTORY:$CONTAINER_DIRECTORY $IMAGE_NAME /bin/bash
+# Run the Docker container with a bind mount and GPU support
+docker run -it --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 \
+        --name $CONTAINER_NAME -v $HOST_DIRECTORY:$CONTAINER_DIRECTORY $IMAGE_NAME /bin/bash

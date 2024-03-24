@@ -1,10 +1,10 @@
 # Use a cuda enabled base image
 FROM nvcr.io/nvidia/pytorch:24.02-py3
 # Set the working directory in the container to /gan-interpolator
-WORKDIR /gan-interpolator
+WORKDIR /app
 
 # Add the current directory contents into the container at /gan-interpolator
-ADD . /gan-interpolator
+ADD . /app
 
 # Set environment variables for tzdata
 ENV DEBIAN_FRONTEND=noninteractive
