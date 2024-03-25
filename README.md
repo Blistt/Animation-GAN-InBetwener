@@ -60,13 +60,13 @@ bash docker/install_packages.sh
 ```
 This installation does not require Docker, despite the directory name.
 
-## Generate frames
+## Generate in-between frames
 <table>
   <tr>
     <td align="center">
       <img src="mini_datasets/supporting/generate_gt.gif" width="400" />
       <br />
-      <font size="4"><b>Real triplet</b></font>
+      <font size="4"><b>Pair of keyframes</b></font>
     </td>
     <td align="center">
       <img src="mini_datasets/cd_visualizer2/good_gen_1_marked.gif" width="400" />
