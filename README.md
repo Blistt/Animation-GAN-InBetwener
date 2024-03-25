@@ -106,6 +106,8 @@ This action will generate an intermediate frame for a provided triplet and save 
     </td>
   </tr>
 </table>
+
+
 To add generated frames to a video, run the following command:
 ```bash
 python scripts/generate_from_vid.py
