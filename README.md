@@ -1,5 +1,8 @@
 # Animation-GAN-InBetwener
 This is an automatic In-Betweening tool for traditional 2D animation.
+```
+test
+```
 Given 2 drawings, this tool generates an intermediate one using a supervised autoencoder (U-Net like) and Generative Adversarial Networks (GAN). For an in-depth description of the model, experiments and results in its entirety, download the thesis document, [In-between frame generation for uncolored 2D animation](https://drive.google.com/file/d/1QYXvTovd8EeVhUQjnB7PIwIJXs7YR-JU/view?usp=sharing).
 
 <table>
@@ -75,15 +78,16 @@ This installation does not require Docker, despite the directory name.
     </td>
   </tr>
 </table>
+
 To generate an in-between frame given a pair of end-frames, download the generator model's [checkpoints](https://drive.google.com/file/d/1HNBLPgWxvDbKNrPAua-SUQVr7d-zQgRl/view?usp=sharing), and save them in the `checkpoints/` directory. Then, run the following command:
-```bash
+```
 python scripts/generate.py
 ```
 This action will generate an intermediate frame for a provided sample pair of end-frames and save it in the `to_generate/wo_gt/` directory with the tile `in-between.png` along with a gif of the resulting triplet (sequence of 3 frames - the 2 end-frames + the in-between frame). To test your own pair of end-frames, replace the frames in the `to_generate/wo_gt/` directory with your own. 
 
 ### Frame triplets (with ground truth in-betweens)
 To test the generation of a known in-between frame, run the following command:
-```bash
+```
 bash python scrips/generate.py 'gt'
 ```
 This action will generate an intermediate frame for a provided triplet and save it in the `to_generate/w_gt/` directory with the title `in-between.png` along with a gif of the resulting triplet (with the generated in-between), as well as a gif with the original triplet (with the real in-between). In addition, a gif of the resulting triplet, overlapping the generated frame with the real frame is also provided, in order to help visualize generation errors.
@@ -121,7 +125,7 @@ This action will first extract the line-art from an animated video (in-between f
 
 ## Train system
 To train the system, run the following command:
-```bash
+```
 scripts/run_experiment.py --config experiment_configs/default.ini
 ```
 This action will perform training from scratch with the parameters optimized by the authors of this repository as default. Feel free to modify the `experiment_configs/default.ini` file to modify the trainig parameters, as well as visualization and evaluation configurations. The `scripts/run_experiment.py` file contains commented explanations of what each parameter does. For example, the `pretrain` parameter allows you to start training with the model's fully trained weights, which is convenient for fine-tuning to your own dataset.
