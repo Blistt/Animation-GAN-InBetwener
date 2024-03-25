@@ -1,8 +1,6 @@
 # Animation-GAN-InBetwener
 This is an automatic In-Betweening tool for traditional 2D animation.
-```
-test
-```
+
 Given 2 drawings, this tool generates an intermediate one using a supervised autoencoder (U-Net like) and Generative Adversarial Networks (GAN). For an in-depth description of the model, experiments and results in its entirety, download the thesis document, [In-between frame generation for uncolored 2D animation](https://drive.google.com/file/d/1QYXvTovd8EeVhUQjnB7PIwIJXs7YR-JU/view?usp=sharing).
 
 <table>
