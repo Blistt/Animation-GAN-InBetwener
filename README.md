@@ -31,7 +31,7 @@ Traditional 2D animation remains a largely manual process where each frame in a 
 
 ## Requirements
 ### Docker
-The simplest way to re-create the virtual environment used in this project is by pulling its docker image and crating a container. This action requires Docker to be installed in a machine with NVIDIA GPUs. To run the docker installation, first pull the image from Dockerhub:
+The simplest way to re-create the virtual environment used in this project is by pulling its docker image and crating a container.
 ```
 docker pull frannarp/gan-inbetween:latest
 ```
